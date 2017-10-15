@@ -3,6 +3,9 @@ __pycache__/
 *.py[cod]
 *$py.class
 
+!src/Cargo.toml
+!src/Cargo.lock
+
 # C extensions
 *.so
 
@@ -99,3 +102,9 @@ ENV/
 
 # mypy
 .mypy_cache/
+/src/target/
+.idea/
+src/Cargo.lock
+src/Cargo.toml
+!/src/Cargo.lock
+!/src/Cargo.toml

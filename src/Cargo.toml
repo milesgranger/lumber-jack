@@ -1,0 +1,11 @@
+[package]
+name = "lumber-jack"
+version = "0.1.0"
+authors = ["Miles Granger <miles59923@gmail.com>"]
+
+[dependencies]
+csv = "1.0.0-beta.5"
+
+[[bin]]
+name = "src"
+path = "main.rs"
