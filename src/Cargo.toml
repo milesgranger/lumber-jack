@@ -1,10 +1,12 @@
 [package]
 name = "lumber-jack"
-version = "0.1.0"
-authors = ["Miles Granger <miles59923@gmail.com>"]
+version = "0.0.1"
+authors = ["Miles Granger <miles.r.granger@gmail.com>"]
 
 [dependencies]
 csv = "1.0.0-beta.5"
+ndarray = { version = "0.10.0", features = ["blas"] }
+blas-sys = { version = "0.6", default-features = false, features = ["openblas"] }
 
 [[bin]]
 name = "src"
