@@ -3,4 +3,10 @@ name = "lumber-jack"
 version = "0.1.0"
 authors = ["Miles Granger <miles59923@gmail.com>"]
 
+[lib]
+name = "lumberjack"
+crate-type = ["cdylib"]
+
 [dependencies]
+pyo3 = {version="0.2", features=["extension-module"]}
+

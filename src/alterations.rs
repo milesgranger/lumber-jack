@@ -7,7 +7,7 @@ use std::collections::{HashMap, BTreeSet};
 use std::rc::Rc;
 
 
-pub fn split_n_hot_encode<'a>(raw_texts: Vec<&str>, sep: &str, cutoff: usize) -> (Vec<Vec<u8>>, Vec<String>) {
+pub fn split_n_hot_encode(raw_texts: Vec<String>, sep: String, cutoff: usize) -> (Vec<String>, Vec<Vec<u8>>) {
     /*
     Given an array of strings of size (n_samples,) will return a one-hot encoded matrix for each sample
     indicating if the string/word was present
@@ -16,7 +16,7 @@ pub fn split_n_hot_encode<'a>(raw_texts: Vec<&str>, sep: &str, cutoff: usize) ->
     // Make mutable reference counter out of mutuble raw_texts
     // this way, we can pass .clone()s to functions without actually making a full copy
     // and pass ownership to parse_into_key_word_counts() without worrying about lifetimes there.
-    let raw_texts: Rc<Vec<&str>> = Rc::new(raw_texts);
+    let raw_texts: Rc<Vec<String>> = Rc::new(raw_texts);
 
     // Get a hashmap of keyword counts based from raw_texts and the sep value
     let string_counts: HashMap<String, usize> = parse_into_key_word_counts(raw_texts.clone(), sep);
@@ -30,11 +30,11 @@ pub fn split_n_hot_encode<'a>(raw_texts: Vec<&str>, sep: &str, cutoff: usize) ->
 
     // Define the array of strings, which match the matrix dim 1
     let array_of_strings: Vec<String> = string_counts.keys().cloned().collect();
-    (matrix, array_of_strings)
+    (array_of_strings, matrix)
 
 }
 
-fn parse_into_key_word_counts(raw_texts: Rc<Vec<&str>>, sep: &str) -> HashMap<String, usize> {
+fn parse_into_key_word_counts(raw_texts: Rc<Vec<String>>, sep: String) -> HashMap<String, usize> {
     /*
     Split raw_texts by sep and return a hashmap of counts of the words
     */
@@ -55,7 +55,7 @@ fn parse_into_key_word_counts(raw_texts: Rc<Vec<&str>>, sep: &str) -> HashMap<St
     string_counts
 }
 
-fn produce_onehot(key_words: &Vec<String>, raw_texts: &Vec<&str>) -> Vec<Vec<u8>> {
+fn produce_onehot(key_words: &Vec<String>, raw_texts: &Vec<String>) -> Vec<Vec<u8>> {
     /*
     Given an array of raw texts and an array of words to look for, return one-hot matrix
     indicating if word at each index of key_words occurs in raw_text array
@@ -71,18 +71,27 @@ fn produce_onehot(key_words: &Vec<String>, raw_texts: &Vec<&str>) -> Vec<Vec<u8>
     and consists of binary indicators if the key_word was present in the instance of raw_text
     */
 
+    // Define the main matrix which will contain sub matrices comprised of 0/1 values
     let mut matrix: Vec<Vec<u8>> = Vec::with_capacity(raw_texts.len());
 
     // This portion could be done parallel by doing each raw text by itself and then collecting
     // all resulting one-hot vectors
-    for (i, raw_text) in raw_texts.iter().enumerate() {
-        for (j, key_word) in key_words.iter().enumerate() {
+    for raw_text in raw_texts.iter() {
+
+        // Define new empty submatrix for this row of raw_text
+        let mut submatrix: Vec<u8> = Vec::with_capacity(key_words.len());
+
+        // Iterate over the keywords checking each, and adding the 1 or 0
+        for key_word in key_words.iter() {
             if raw_text.contains(key_word) {
-                matrix[i][j] = 1;
+                submatrix.push(1);
             } else {
-                matrix[i][j] = 0;
+                submatrix.push(0);
             }
         }
+
+        // Push the finished submatrix into the final matrix
+        matrix.push(submatrix);
     }
     matrix
 }

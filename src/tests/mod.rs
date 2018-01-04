@@ -1,6 +1,7 @@
 
 
 use self::super::series::Series;
+use self::super::alterations;
 use std::option::Option;
 
 #[test]
@@ -22,4 +23,11 @@ fn series_length() {
     } else {
         panic!("Unable to create new series!");
     }
+}
+
+#[test]
+fn one_hot_encode_text(){
+    // Test alterations::split_n_one_hot_encode
+    let raw_texts = vec!["Hello, there", "Hello, here"];
+    let (words, one_hot) = alterations::split_n_hot_encode(raw_texts, ",", 0);
 }
