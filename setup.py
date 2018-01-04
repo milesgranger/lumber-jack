@@ -33,7 +33,9 @@ setup(
         'Operating System :: MacOS :: MacOS X',
     ],
     packages=['lumberjack'],
-    rust_extensions=[RustExtension('lumberjack.alterations', 'Cargo.toml')],
+    rust_extensions=[
+        RustExtension('lumberjack.rust.alterations', 'Cargo.toml')
+    ],
     install_requires=install_requires,
     tests_require=tests_require,
     setup_requires=setup_requires,

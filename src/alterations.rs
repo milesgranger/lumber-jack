@@ -31,7 +31,6 @@ pub fn split_n_hot_encode(raw_texts: Vec<String>, sep: String, cutoff: usize) ->
     // Define the array of strings, which match the matrix dim 1
     let array_of_strings: Vec<String> = string_counts.keys().cloned().collect();
     (array_of_strings, matrix)
-
 }
 
 fn parse_into_key_word_counts(raw_texts: Rc<Vec<String>>, sep: String) -> HashMap<String, usize> {
@@ -46,7 +45,7 @@ fn parse_into_key_word_counts(raw_texts: Rc<Vec<String>>, sep: String) -> HashMa
     // split on sep and insert it as a key while updating counter
     for raw_text in raw_texts.iter() {
         for word in raw_text.split(&sep).collect::<Vec<&str>>().iter() {
-            let count = string_counts.entry(word.to_string()).or_insert(0);
+            let count = string_counts.entry(word.trim().to_string()).or_insert(0);
             *count += 1;
         }
     }

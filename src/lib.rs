@@ -21,3 +21,6 @@ fn init_mod(py: Python, m: &PyModule) -> PyResult<()> {
 
     Ok(())
 }
+
+
+// TODO: build and initialize a dataframe like module
