@@ -4,37 +4,58 @@
 
 use std::vec::Vec;
 use std::collections::{HashMap, BTreeSet};
+use std::rc::Rc;
 
 
-pub fn split_n_hot_encode<'a>(array_of_strings: &mut Vec<&'a str>, sep: &str, cutoff: usize) -> (Vec<Vec<u8>>, Vec<&'a str>) {
+pub fn split_n_hot_encode<'a>(raw_texts: Vec<&str>, sep: &str, cutoff: usize) -> (Vec<Vec<u8>>, Vec<String>) {
     /*
     Given an array of strings of size (n_samples,) will return a one-hot encoded matrix for each sample
     indicating if the string/word was present
     */
 
-    // The mapping of unique strings to how many times they occur
-    let mut string_counts: HashMap<&str, usize> = HashMap::new();
+    // Make mutable reference counter out of mutuble raw_texts
+    // this way, we can pass .clone()s to functions without actually making a full copy
+    // and pass ownership to parse_into_key_word_counts() without worrying about lifetimes there.
+    let raw_texts: Rc<Vec<&str>> = Rc::new(raw_texts);
 
-    // HashMap of strings and their counts
-    for string in array_of_strings.iter() {
-        let count = string_counts.entry(string).or_insert(0);
-        *count += 1;
-    }
+    // Get a hashmap of keyword counts based from raw_texts and the sep value
+    let string_counts: HashMap<String, usize> = parse_into_key_word_counts(raw_texts.clone(), sep);
 
     // Remove keys whose value is below cutoff vvalue, returns immediately if cutoff < 1
-    let string_counts: HashMap<&str, usize> = prune_keys(string_counts, cutoff);
-    let key_words: Vec<&str> = string_counts.keys().cloned().collect();
+    let string_counts: HashMap<String, usize> = prune_keys(string_counts, cutoff);
+    let key_words: Vec<String> = string_counts.keys().cloned().collect();
 
     // Create one-hot matrix
-    let matrix: Vec<Vec<u8>> = produce_onehot(&key_words, &array_of_strings);
+    let matrix: Vec<Vec<u8>> = produce_onehot(&key_words, &raw_texts);
 
-
-    let array_of_strings: Vec<&str> = string_counts.keys().cloned().collect();
+    // Define the array of strings, which match the matrix dim 1
+    let array_of_strings: Vec<String> = string_counts.keys().cloned().collect();
     (matrix, array_of_strings)
 
 }
 
-fn produce_onehot(key_words: &Vec<&str>, raw_texts: &Vec<&str>) -> Vec<Vec<u8>> {
+fn parse_into_key_word_counts(raw_texts: Rc<Vec<&str>>, sep: &str) -> HashMap<String, usize> {
+    /*
+    Split raw_texts by sep and return a hashmap of counts of the words
+    */
+
+    // The mapping of unique strings to how many times they occur
+    let mut string_counts: HashMap<String, usize> = HashMap::new();
+
+    // Iterate over raw texts and for each of those raw_text instances
+    // split on sep and insert it as a key while updating counter
+    for raw_text in raw_texts.iter() {
+        for word in raw_text.split(&sep).collect::<Vec<&str>>().iter() {
+            let count = string_counts.entry(word.to_string()).or_insert(0);
+            *count += 1;
+        }
+    }
+
+    // Return back the hashmap of word counts
+    string_counts
+}
+
+fn produce_onehot(key_words: &Vec<String>, raw_texts: &Vec<&str>) -> Vec<Vec<u8>> {
     /*
     Given an array of raw texts and an array of words to look for, return one-hot matrix
     indicating if word at each index of key_words occurs in raw_text array
@@ -56,7 +77,7 @@ fn produce_onehot(key_words: &Vec<&str>, raw_texts: &Vec<&str>) -> Vec<Vec<u8>> 
     // all resulting one-hot vectors
     for (i, raw_text) in raw_texts.iter().enumerate() {
         for (j, key_word) in key_words.iter().enumerate() {
-            if raw_texts.contains(key_word) {
+            if raw_text.contains(key_word) {
                 matrix[i][j] = 1;
             } else {
                 matrix[i][j] = 0;
@@ -66,7 +87,7 @@ fn produce_onehot(key_words: &Vec<&str>, raw_texts: &Vec<&str>) -> Vec<Vec<u8>> 
     matrix
 }
 
-fn prune_keys(mut string_counts: HashMap<&str, usize>, cutoff: usize) -> HashMap<&str, usize> {
+fn prune_keys(mut string_counts: HashMap<String, usize>, cutoff: usize) -> HashMap<String, usize> {
     /*
 
     Handles the removal of keys from a Hashmap given a cutoff value
@@ -88,14 +109,14 @@ fn prune_keys(mut string_counts: HashMap<&str, usize>, cutoff: usize) -> HashMap
     }
 
     // Define keys to remove set in this scope
-    let mut keys_to_remove: BTreeSet<&str> = BTreeSet::new();
+    let mut keys_to_remove: BTreeSet<String> = BTreeSet::new();
 
     // Iterate over strings and their occurrence counts, adding to keys_to_remove as needed
     for string in string_counts.keys() {
         let count = string_counts.get(string);
         if let Some(ct) = count {
             if ct < &cutoff {
-                keys_to_remove.insert(string);
+                keys_to_remove.insert(string.clone());
             }
         }
     }
