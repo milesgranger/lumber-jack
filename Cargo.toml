@@ -8,5 +8,6 @@ name = "lumberjack"
 crate-type = ["cdylib"]
 
 [dependencies]
+num = "0.1"
 pyo3 = {version="0.2", features=["extension-module"]}
 
