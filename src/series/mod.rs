@@ -12,17 +12,36 @@ pub enum DataType {
 #[derive(Debug, PartialEq, Clone)]
 pub struct DataCell<T> {
     value: T,
-    data_type: DataType
+    dtype: DataType
 }
 
 impl<T> DataCell<T> {
-    pub fn new(value: T, data_type: DataType) -> DataCell<T> {
+    pub fn new(value: T, dtype: DataType) -> DataCell<T> {
         DataCell{
             value,
-            data_type
+            dtype
         }
     }
 }
+
+
+
+pub trait Shape {
+    fn shape(&self) -> (u32,);
+    fn length(&self) -> u32;
+}
+
+impl<T1, T2> Shape for Series<T1, T2> {
+
+    fn shape(&self) -> (u32,) {
+        (self.values.len() as u32,)
+    }
+
+    fn length(&self) -> u32 {
+        self.values.len() as u32
+    }
+}
+
 
 
 #[derive(Debug, PartialEq, Clone)]
@@ -30,16 +49,6 @@ pub struct Series<T1, T2>
 {
     index: Vec<DataCell<T1>>,
     values: Vec<DataCell<T2>>,
-}
-
-pub trait Shape {
-    fn shape(&self) -> (u32,);
-}
-
-impl<T1, T2> Shape for Series<T1, T2> {
-    fn shape(&self) -> (u32,) {
-        (self.values.len() as u32,)
-    }
 }
 
 impl<T1, T2> Series<T1, T2> {
@@ -66,13 +75,6 @@ impl<T1, T2> Series<T1, T2> {
 
 
 
-    }
-
-    pub fn length(&self) -> usize {
-        /*
-        Return the length of the Series
-        */
-        self.values.len()
     }
 
 }
