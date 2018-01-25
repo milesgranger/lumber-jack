@@ -6,6 +6,7 @@ use pyo3::prelude::*;
 #[cfg(test)]
 mod tests;
 mod series;
+mod prelude;
 mod alterations;
 
 
