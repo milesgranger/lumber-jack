@@ -5,9 +5,9 @@ use pyo3::prelude::*;
 
 #[cfg(test)]
 mod tests;
-mod series;
-mod prelude;
-mod alterations;
+pub mod series;
+pub mod prelude;
+pub mod alterations;
 
 
 #[py::modinit(alterations)]
