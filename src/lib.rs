@@ -1,5 +1,7 @@
 #![feature(proc_macro, specialization)]
 
+extern crate ndarray;
+extern crate num;
 extern crate pyo3;
 use pyo3::prelude::*;
 

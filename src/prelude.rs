@@ -1,1 +1,1 @@
-pub use series::{Shape, Series, Value, Array};
+pub use series::{Series};
