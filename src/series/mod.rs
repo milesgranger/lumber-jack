@@ -1,5 +1,7 @@
 #![allow(dead_code)]
 
+extern crate ndarray;
+
 use std::vec::Vec;
 use std::result::Result;
 use std::fmt;
