@@ -9,7 +9,7 @@ fn series_construction_integer() {
 
 #[test]
 fn series_construction_string() {
-    let _series = Series::new(Some(vec![0, 1, 2]), vec!["Hi".to_string(), "Hello".to_string()]);
+    let _series = Series::new(None, vec!["Hi".to_string(), "Hello".to_string()]);
     println!("Got series: {:?}", _series);
 }
 
