@@ -1,1 +1,1 @@
-pub use series::{Series};
+pub use series::{Series, LumberJackData};
