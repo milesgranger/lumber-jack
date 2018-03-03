@@ -8,6 +8,7 @@ use pyo3::prelude::*;
 #[cfg(test)]
 mod tests;
 pub mod series;
+pub mod dataframe;
 pub mod prelude;
 pub mod alterations;
 

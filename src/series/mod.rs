@@ -3,7 +3,6 @@
 use super::ndarray::prelude::*;
 use std::fmt;
 use std::iter::{IntoIterator};
-use std::marker::Sized;
 use ndarray::{OwnedRepr};
 use ndarray::ArrayBase;
 
