@@ -1,10 +1,8 @@
 #![allow(dead_code)]
 
 use super::ndarray::prelude::*;
-use num;
 use std::fmt;
 use std::iter::{IntoIterator};
-use std::ops::Mul;
 use std::marker::Sized;
 use ndarray::{OwnedRepr};
 use ndarray::ArrayBase;
@@ -23,7 +21,7 @@ pub trait LumberJackData {
     fn kind(&self) -> DType;
 }
 
-/// Support the f64 dtype
+/// Support the usize dtype
 impl LumberJackData for usize {
     fn kind(&self) -> DType {
         DType::USize
@@ -37,22 +35,24 @@ impl fmt::Debug for LumberJackData {
     }
 }
 
-type LumberJackArray = ArrayBase<OwnedRepr<Box<LumberJackData>>, Dim<[usize; 1]>>;
 
 /// Series struct, with four type parameters where T1 & D1 represent the data type and
 /// data dimension respectively for the index array, and T2 & D2 for the series values
 #[derive(Debug)]
-pub struct Series
+pub struct Series<T>
+    where T: LumberJackData
 {
-    index: LumberJackArray,
-    values: LumberJackArray
+    index: ArrayBase<OwnedRepr<T>, Dim<[usize; 1]>>,
+    values: ArrayBase<OwnedRepr<T>, Dim<[usize; 1]>>
 }
 
 
-impl Series {
+impl<T> Series<T>
+    where T: LumberJackData
+{
 
     pub fn new<I>(index: I, values: I) -> Self
-        where I: IntoIterator, I::Item: LumberJackData
+        where I: IntoIterator<Item=T>
     {
         let index = Array::from_iter(index.into_iter());
         let values = Array::from_iter(values.into_iter());
