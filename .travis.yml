@@ -1,18 +1,15 @@
+language: rust
+
+rust:
+  - nightly
+  - stable
+
+python:
+  - "3.5"
+
 matrix:
-
-  include:
-    - language: python
-      python:
-        - "3.5"
-
-    - language: rust
-      rust:
-        - nightly
-        - stable
-
   allow_failures:
     - stable
   fast_finish: true
 
 cache: cargo
-
