@@ -1,5 +1,7 @@
 # lumber-jack
 
+![Build Status](https://travis-ci.org/milesgranger/lumber-jack.svg?branch=master)
+
 ---
 
 This package strives to provide fast, safe and concurrent pre-processing tools for 

@@ -8,11 +8,6 @@ python:
   - "3.5"
 
 # TODO: Add matrix to test with multiple python versions for lumber-jack build.
-matrix:
-  allow_failures:
-    - stable
-  fast_finish: true
-
 cache: cargo
 
 install:
@@ -26,5 +21,5 @@ install:
   - conda info -a
 
   # Replace dep1 dep2 ... with your dependencies
-  - conda create -q -n test-environment python=3.5
+  - conda create -q -n test-environment python=3.5 -y
   - source activate test-environment
