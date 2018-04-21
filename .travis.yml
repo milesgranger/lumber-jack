@@ -2,7 +2,6 @@ language: rust
 
 rust:
   - nightly
-  - stable
 
 python:
   - "3.5"
