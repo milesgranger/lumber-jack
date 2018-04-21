@@ -1,10 +1,15 @@
-language: rust
-
-rust:
-  - nightly
-  - stable
-
 matrix:
+
+  include:
+    - language: python
+      python:
+        - "3.5"
+
+    - language: rust
+      rust:
+        - nightly
+        - stable
+
   allow_failures:
     - stable
   fast_finish: true
