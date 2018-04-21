@@ -62,6 +62,26 @@ impl<T> Series<T>
     pub fn len(&self) -> usize {
         self.values.len()
     }
+
+    pub fn append<I: IntoIterator<Item=T>>(&mut self, index: I, values: I, inplace: bool) -> Option<Self>
+        where T: Clone
+    {
+        // Append an iterable to Self or return a copy
+        let mut new_index = self.index.to_vec();
+        let mut new_values = self.values.to_vec();
+        for (idx, value) in index.into_iter().zip(values.into_iter()) {
+            new_values.push(value);
+            new_index.push(idx);
+        }
+
+        if inplace {
+            self.index = Array::from_vec(new_index);
+            self.values = Array::from_vec(new_values);
+            None
+        } else {
+            Some(Self::new(new_index, new_values))
+        }
+    }
 }
 
 
