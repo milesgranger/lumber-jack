@@ -107,3 +107,5 @@ src/Cargo.lock
 src/Cargo.toml
 !/src/Cargo.lock
 !/src/Cargo.toml
+wheelhouse/
+.pytest_cache/

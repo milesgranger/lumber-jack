@@ -1,0 +1,2 @@
+numpy>=1.14.0
+semantic-version>=2.6.0

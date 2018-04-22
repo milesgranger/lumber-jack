@@ -12,19 +12,24 @@ interfaces.
 
 ### Install
 
-`cargo` & `rustup` should be installed along with nightly version of Rust 2018-01-01 
-or later set for the current directory.
+`cargo` & `rustup` should be installed along with nightly version of Rust  
+
+**NOTE** Only Python 3.5 is being tested against on Unix platforms
+
+
 
 From the terminal run:
 ```commandline
-rustup override set nightly-2018-01-01
-pip install git+https://github.com/milesgranger/lumber-jack.git
+# Python 3.5 on Unix only at present
+pip install --upgrade lumber-jack
 
+# bleeding: (You need Rust on your system & Python >= 3.5)
+rustup override set nightly
+pip install git+https://github.com/milesgranger/lumber-jack.git
 
 # Uninstall
 pip uninstall lumber-jack
 ```
-
 ---
 
 ### Working Tools:
