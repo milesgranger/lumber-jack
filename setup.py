@@ -16,8 +16,10 @@ except ImportError:
 
 
 setup_requires = ['setuptools-rust>=0.9.1']
-install_requires = ['numpy']
-tests_require = install_requires + ['pytest', 'pytest-benchmark']
+install_requires = ['numpy', 'pandas']
+with open('requirements.txt', 'r') as f:
+    pgks = [p.strip() for p in f]
+tests_require = install_requires + ['pytest==3.5.0', 'pytest-benchmark'] + pgks
 
 setup(
     name='lumber-jack',
