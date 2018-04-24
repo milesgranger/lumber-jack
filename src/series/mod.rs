@@ -3,8 +3,8 @@
 use super::ndarray::prelude::*;
 use std::fmt;
 use std::iter::{IntoIterator};
-use ndarray::{OwnedRepr};
-use ndarray::ArrayBase;
+use num::Zero;
+use ndarray::{OwnedRepr, ArrayBase};
 
 
 #[derive(Debug)]
@@ -42,12 +42,13 @@ pub struct Series<T>
     where T: LumberJackData
 {
     index: ArrayBase<OwnedRepr<T>, Dim<[usize; 1]>>,
-    values: ArrayBase<OwnedRepr<T>, Dim<[usize; 1]>>
+    values: ArrayBase<OwnedRepr<T>, Dim<[usize; 1]>>,
+    dtype: DType
 }
 
 
 impl<T> Series<T>
-    where T: LumberJackData
+    where T: LumberJackData + Clone + Zero
 {
 
     pub fn new<I>(index: I, values: I) -> Self
@@ -55,12 +56,33 @@ impl<T> Series<T>
     {
         let index = Array::from_iter(index.into_iter());
         let values = Array::from_iter(values.into_iter());
-        Series{index, values}
+        let val = values[0].clone();
+        let dtype = val.kind();
+        Series{index, values, dtype}
+    }
+
+
+    pub fn map<F>(&self, func: F) -> Self
+        where F: Fn(&T) -> T
+    {
+        /*
+            Map an arbitrary function over the values of a series and return a new series result.
+        */
+        let mut values = Vec::new();
+        for val in self.values.iter() {
+            let result = func(val);
+            values.push(result);
+        }
+        Series::new(self.index.to_vec(), values)
     }
 
 
     pub fn len(&self) -> usize {
         self.values.len()
+    }
+
+    pub fn sum(&self) -> T {
+        self.values.scalar_sum()
     }
 
     pub fn append<I: IntoIterator<Item=T>>(&mut self, index: I, values: I, inplace: bool) -> Option<Self>
@@ -79,7 +101,7 @@ impl<T> Series<T>
             self.values = Array::from_vec(new_values);
             None
         } else {
-            Some(Self::new(new_index, new_values))
+            Some(Series::new(new_index, new_values))
         }
     }
 }
