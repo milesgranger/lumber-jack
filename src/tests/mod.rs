@@ -57,3 +57,14 @@ fn series_append_value_inplace() {
     assert_eq!(_series.len(), 5);
 }
 
+#[test]
+fn series_map_func() {
+    let _series = Series::new(vec![0, 1, 2], vec![0, 1, 2]);
+    let _new_series = _series.map(|x| x * 2);
+
+    // Assert that mapping the x2 equals 6 -> sum(x * 2 for x in [0, 1, 2])
+    println!("Sum is: {}", _new_series.sum());
+    assert_eq!(_new_series.sum(), 6);
+
+}
+
