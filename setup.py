@@ -1,6 +1,6 @@
 
 import sys
-import lumberjack
+from lumberjack import __version__
 from setuptools import setup
 
 try:
@@ -17,13 +17,11 @@ except ImportError:
 
 setup_requires = ['setuptools-rust>=0.9.1']
 install_requires = ['numpy', 'pandas']
-with open('requirements.txt', 'r') as f:
-    pgks = [p.strip() for p in f]
-tests_require = install_requires + ['pytest==3.5.0', 'pytest-benchmark'] + pgks
+tests_require = install_requires + ['pytest==3.5.0', 'pytest-benchmark']
 
 setup(
     name='lumber-jack',
-    version=lumberjack.__version__,
+    version=__version__,
     maintainer="Miles Granger",
     keywords="pandas rust python data manipulation processing",
     url="https://github.com/milesgranger/lumber-jack",
@@ -52,7 +50,7 @@ setup(
     install_requires=install_requires,
     tests_require=tests_require,
     test_suite='lumberjack.tests',
-    setup_requires=setup_requires,
+    setup_requires=setup_requires + install_requires,
     include_package_data=True,
     license="OSI Approved :: BSD License",
     zip_safe=False

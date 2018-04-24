@@ -1,7 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from .dataframe import DataFrame
-from .series import Series
+try:
+    from .dataframe import DataFrame
+    from .series import Series
+except ImportError:
+    pass  # bypass error on initial setup.py
 
 # TODO: Import other pd.* objects & functions which haven't been re-implemented dynamically.
 
