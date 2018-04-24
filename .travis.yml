@@ -5,6 +5,7 @@ rust:
 
 python:
   - "3.5"
+  - "3.6"
 
 # TODO: Add matrix to test with multiple python versions for lumber-jack build
 cache: cargo

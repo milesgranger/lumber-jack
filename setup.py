@@ -1,6 +1,5 @@
 
 import sys
-from lumberjack import __version__
 from setuptools import setup
 
 try:
@@ -13,6 +12,13 @@ except ImportError:
         raise SystemExit(errno)
     else:
         from setuptools_rust import RustExtension
+
+
+MAJOR_VERSION = 0
+MINOR_VERSION = 1
+PATCH_VERSION = '1a'
+
+__version__ = "{}.{}.{}".format(MAJOR_VERSION, MINOR_VERSION, PATCH_VERSION)
 
 
 setup_requires = ['setuptools-rust>=0.9.1']
