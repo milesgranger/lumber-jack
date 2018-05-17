@@ -5,6 +5,7 @@ extern crate num;
 extern crate pyo3;
 
 use pyo3::prelude::*;
+use pyo3::py::modinit as pymodinit;
 
 #[cfg(test)]
 mod tests;
@@ -14,7 +15,7 @@ pub mod prelude;
 pub mod alterations;
 
 
-#[py::modinit(alterations)]
+#[pymodinit(alterations)]
 // Initialize the 'alterations' module of lumberjack
 fn init_mod(py: Python, m: &PyModule) -> PyResult<()> {
 
