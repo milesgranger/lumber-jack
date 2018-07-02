@@ -1,5 +1,7 @@
 
-from setuptools import setup, Extension
+from subprocess import Popen
+from setuptools import setup, Extension, find_packages
+from setuptools.command.build_ext import build_ext
 from Cython.Build import cythonize
 import numpy as np
 from lumberjack._version import __version__
@@ -7,6 +9,18 @@ from lumberjack._version import __version__
 setup_requires = ['pytest-runner', "Cython"]
 install_requires = ['numpy', 'pandas']
 tests_require = install_requires + ['pytest==3.5.0', 'pytest-benchmark']
+
+
+class BuildRustSharedObject(build_ext):
+
+    def run(self):
+        print('running build of liblumberjack')
+        process = Popen(['cargo', 'build', '--out-dir', './lumberjack/rust/', '-Z', 'unstable-options'])
+        process.wait()
+        if process.returncode != 0:
+            raise RuntimeError('Failed building liblumberjack object, exit code: {}'.format(process.returncode))
+        super().run()
+
 
 rust_core_ext = Extension(name="*",
                           sources=["lumberjack/cython/*.pyx"],
@@ -22,6 +36,9 @@ setup(
     url="https://github.com/milesgranger/lumber-jack",
     description="Alpha work on adding additional and improved functionality to Pandas.",
     long_description="Alpha work on adding additional and improved functionality to Pandas.",
+    cmdclass={
+      'build_ext': BuildRustSharedObject
+    },
     classifiers=[
         'License :: OSI Approved :: MIT License',
         'Development Status :: 3 - Alpha',
@@ -38,7 +55,8 @@ setup(
         'Operating System :: Unix',
         'Operating System :: MacOS :: MacOS X',
     ],
-    packages=['lumberjack'],
+    packages=find_packages(),
+    package_data={'lumberjack': ['lumberjack/rust/liblumberjack']},
     include_dirs=[np.get_include()],
     ext_modules=cythonize([rust_core_ext]),
     install_requires=install_requires,
@@ -46,6 +64,7 @@ setup(
     test_suite='tests',
     setup_requires=setup_requires + install_requires,
     include_package_data=True,
+
     license="OSI Approved :: BSD License",
     zip_safe=False
 )

@@ -2,10 +2,6 @@
 
 extern crate ndarray;
 extern crate num;
-extern crate pyo3;
-
-use pyo3::prelude::*;
-use pyo3::py::modinit as pymodinit;
 
 #[cfg(test)]
 mod tests;
