@@ -7,10 +7,6 @@
 click==6.7                # via pip-tools
 first==2.0.1              # via pip-tools
 numpy==1.14.2
-pandas==0.22.0
 pip-tools==2.0.1
-python-dateutil==2.7.2    # via pandas
-pytz==2018.4              # via pandas
 semantic-version==2.6.0
-setuptools-rust==0.9.1
-six==1.11.0               # via pip-tools, python-dateutil
+six==1.11.0               # via pip-tools

@@ -1,29 +1,17 @@
 
-import sys
 from setuptools import setup, Extension
 from Cython.Build import cythonize
 import numpy as np
 from lumberjack._version import __version__
 
-try:
-    from setuptools_rust import RustExtension
-except ImportError:
-    import subprocess
-    errno = subprocess.call([sys.executable, '-m', 'pip', 'install', 'setuptools-rust>=0.9.2'])
-    if errno:
-        print("Please install setuptools-rust package")
-        raise SystemExit(errno)
-    else:
-        from setuptools_rust import RustExtension
-
-setup_requires = ['setuptools-rust>=0.9.2', 'pytest-runner', "Cython"]
+setup_requires = ['pytest-runner', "Cython"]
 install_requires = ['numpy', 'pandas']
 tests_require = install_requires + ['pytest==3.5.0', 'pytest-benchmark']
 
 rust_core_ext = Extension(name="*",
                           sources=["lumberjack/cython/*.pyx"],
-                          libraries=['lumberjacklib'],
-                          extra_link_args=['-L./lumberjack/rust'],
+                          libraries=['lumberjack'],
+                          include_dirs=['./lumberjack/rust/', np.get_include()],
                           library_dirs=['./lumberjack/rust'])
 
 setup(
@@ -52,10 +40,7 @@ setup(
     ],
     packages=['lumberjack'],
     include_dirs=[np.get_include()],
-    ext_modules=cythonize([rust_core_ext], include_path=[np.get_include()]),
-    rust_extensions=[
-        RustExtension('lumberjack.rust.lumberjacklib', 'Cargo.toml')
-    ],
+    ext_modules=cythonize([rust_core_ext]),
     install_requires=install_requires,
     tests_require=tests_require,
     test_suite='tests',

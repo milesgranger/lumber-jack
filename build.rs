@@ -8,5 +8,5 @@ fn main() {
 
     cbindgen::generate(&"./".to_string())
       .unwrap()
-      .write_to_file("./lumberjack/rust/rust_bindings.h");
+      .write_to_file("./lumberjack/rust/liblumberjack.h");
 }

@@ -26,5 +26,6 @@ install:
 
 script:
   - cargo test
-  - python setup.py test
+  - cargo build --out-dir ./lumberjack/rust -Z unstable-options --release
+  - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lumberjack/rust python setup.py test
 

@@ -8,5 +8,3 @@ cpdef float sum_two(float a, float b):
     cdef float result
     result = add_two_in_rust(a, b)
     return result
-
-

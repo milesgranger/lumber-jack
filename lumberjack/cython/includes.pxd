@@ -1,2 +1,2 @@
-cdef extern from "./../rust/rust_bindings.h":
+cdef extern from "./../rust/liblumberjack.h":
     float add_two_in_rust(float a, float b);

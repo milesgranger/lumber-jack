@@ -71,6 +71,7 @@ target/
 
 *.cpp
 *.h
+Cargo.lock
 
 # Jupyter Notebook
 .ipynb_checkpoints
