@@ -14,8 +14,7 @@ cpdef create_array_via_rust():
     vector = create_array()
     cdef np.npy_intp shape[1]
     shape[0] = <np.npy_intp> vector.len
-
-    array = np.PyArray_SimpleNewFromData(1, shape, np.NPY_INT, vector.data)
+    array = np.PyArray_SimpleNewFromData(1, shape, np.NPY_FLOAT64, vector.data)
     return array
 
 

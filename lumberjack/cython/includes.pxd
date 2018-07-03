@@ -4,8 +4,8 @@ cdef extern from "./../rust/liblumberjack.h":
     float add_two_in_rust(float a, float b);
     void double_array(double *);
 
-    cdef struct CVector:
+    cdef struct LumberJackVectorPtr:
         double * data
         int len
 
-    CVector create_array();
+    LumberJackVectorPtr create_array();

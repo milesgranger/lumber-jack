@@ -13,18 +13,19 @@ pub mod dataframe;
 pub mod prelude;
 pub mod alterations;
 
+
 #[repr(C)]
-pub struct CVector {
+pub struct LumberJackVectorPtr {
     data: *mut f64,
-    len: usize
+    len: usize,
 }
 
-impl CVector {
-    fn from_vec<T>(mut vec: Vec<T>) -> CVector {
+impl LumberJackVectorPtr {
+    fn from_vec<T>(mut vec: Vec<T>) -> LumberJackVectorPtr {
         vec.shrink_to_fit();
-        let array = CVector {
-            data: vec.as_mut_ptr() as *mut f64,
-            len: vec.len()
+        let array = LumberJackVectorPtr {
+            data: vec.as_ptr() as *mut f64,
+            len: vec.len(),
         };
         mem::forget(vec);
         array
@@ -37,9 +38,9 @@ pub extern "C" fn add_two_in_rust(a: f64, b: f64) -> f64 {
 }
 
 #[no_mangle]
-pub extern "C" fn create_array() -> CVector {
-    let vec = vec![1, 2, 3, 4];
-    CVector::from_vec(vec)
+pub extern "C" fn create_array() -> LumberJackVectorPtr {
+    let vec = vec![1., 2., 3., 4.];
+    LumberJackVectorPtr::from_vec(vec)
 }
 
 #[no_mangle]
