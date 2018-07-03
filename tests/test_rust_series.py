@@ -45,9 +45,10 @@ class RustSeriesTestCase(unittest.TestCase):
         Test that when given a pointer to an lumberjack array, manually calling rust based 'free' will delete
         that array
         """
-        from lumberjack.cython.series import _free_vector, _create_array
-        array = create_array()
+        from lumberjack.cython.series import LumberJackSeries, get_lumberjack_vector
+        array = get_lumberjack_vector()
+
         logger.debug('Array before dropping: {}'.format(array))
-        _free_vector(array)
         logger.debug('Array afer dropping: {}'.format(array))
+        del array
 

@@ -10,3 +10,6 @@ cdef extern from "./../rust/liblumberjack.h":
         int len
 
     LumberJackVectorPtr create_vector();
+
+
+
