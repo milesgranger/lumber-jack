@@ -50,5 +50,5 @@ class RustSeriesTestCase(unittest.TestCase):
 
         logger.debug('Array before dropping: {}'.format(array))
         logger.debug('Array afer dropping: {}'.format(array))
-        del array
+
 

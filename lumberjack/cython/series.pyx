@@ -2,7 +2,7 @@
 # distutils: language = c++
 
 
-from .includes cimport add_two_in_rust, double_array, create_vector, free_vector, LumberJackVectorPtr
+from .includes cimport add_two_in_rust, double_array, create_lumberjack_series, free_vector, LumberJackSeriesPtr
 import numpy as np
 cimport numpy as np
 
@@ -12,7 +12,7 @@ np.import_array()
 cdef _free_vector(double * ptr, int len):
     free_vector(ptr, len)
 
-cdef np.ndarray create_array_from_rust_vector(LumberJackVectorPtr vector):
+cdef np.ndarray create_array_from_rust_vector(LumberJackSeriesPtr vector):
     cdef np.npy_intp shape[1]
     shape[0] = <np.npy_intp> vector.len
     array = np.PyArray_SimpleNewFromData(1, shape, np.NPY_FLOAT64, vector.ptr)
@@ -24,13 +24,12 @@ cpdef np.ndarray _create_array():
     return array
 
 cpdef LumberJackSeries get_lumberjack_vector():
-    vector = create_vector()
-    v = LumberJackSeries()
-    v._set_ptr(vector.ptr, vector.len)
+    vector = create_lumberjack_series()
+    v = LumberJackSeries.create(vector)
     return v
 
-cdef LumberJackVectorPtr get_rust_vector():
-    vector = create_vector()
+cdef LumberJackSeriesPtr get_rust_vector():
+    vector = create_lumberjack_series()
     return vector
 
 
@@ -55,9 +54,12 @@ cdef class LumberJackSeries:
     cdef double * ptr
     cpdef int len
 
-    cdef _set_ptr(self, double * ptr, int len):
-        self.ptr = ptr
-        self.len = len
+    @staticmethod
+    cdef create(LumberJackSeriesPtr vector):
+        series = LumberJackSeries()
+        series.ptr = vector.ptr
+        series.len = vector.len
+        return series
 
 
     def __dealloc__(self):

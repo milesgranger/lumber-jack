@@ -5,11 +5,11 @@ cdef extern from "./../rust/liblumberjack.h":
     void double_array(double*);
     void free_vector(double*, int);
 
-    cdef struct LumberJackVectorPtr:
+    cdef struct LumberJackSeriesPtr:
         double* ptr
         int len
 
-    LumberJackVectorPtr create_vector();
+    LumberJackSeriesPtr create_lumberjack_series();
 
 
 

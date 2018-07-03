@@ -15,20 +15,20 @@ pub mod alterations;
 
 
 #[repr(C)]
-pub struct LumberJackVectorPtr {
+pub struct LumberJackSeriesPtr {
     ptr: *mut f64,
     len: usize,
 }
 
-impl LumberJackVectorPtr {
-    fn from_vec<T>(mut vec: Vec<T>) -> LumberJackVectorPtr {
+impl LumberJackSeriesPtr {
+    fn from_vec<T>(mut vec: Vec<T>) -> LumberJackSeriesPtr {
         vec.shrink_to_fit();
-        let array = LumberJackVectorPtr {
+        let series_ptr = LumberJackSeriesPtr {
             ptr: vec.as_ptr() as *mut f64,
             len: vec.len(),
         };
         mem::forget(vec);
-        array
+        series_ptr
     }
 }
 
@@ -38,9 +38,9 @@ pub extern "C" fn add_two_in_rust(a: f64, b: f64) -> f64 {
 }
 
 #[no_mangle]
-pub extern "C" fn create_vector() -> LumberJackVectorPtr {
+pub extern "C" fn create_lumberjack_series() -> LumberJackSeriesPtr {
     let vec = vec![1., 2., 3., 4.];
-    LumberJackVectorPtr::from_vec(vec)
+    LumberJackSeriesPtr::from_vec(vec)
 }
 
 #[no_mangle]
