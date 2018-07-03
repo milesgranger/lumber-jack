@@ -2,10 +2,11 @@ import ctypes
 
 cdef extern from "./../rust/liblumberjack.h":
     float add_two_in_rust(float a, float b);
-    void double_array(double *);
+    void double_array(double*);
+    void free_vector(double*, int);
 
     cdef struct LumberJackVectorPtr:
-        double * data
+        double* ptr
         int len
 
-    LumberJackVectorPtr create_array();
+    LumberJackVectorPtr create_vector();

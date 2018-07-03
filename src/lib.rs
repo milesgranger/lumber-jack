@@ -16,7 +16,7 @@ pub mod alterations;
 
 #[repr(C)]
 pub struct LumberJackVectorPtr {
-    data: *mut f64,
+    ptr: *mut f64,
     len: usize,
 }
 
@@ -24,7 +24,7 @@ impl LumberJackVectorPtr {
     fn from_vec<T>(mut vec: Vec<T>) -> LumberJackVectorPtr {
         vec.shrink_to_fit();
         let array = LumberJackVectorPtr {
-            data: vec.as_ptr() as *mut f64,
+            ptr: vec.as_ptr() as *mut f64,
             len: vec.len(),
         };
         mem::forget(vec);
@@ -38,7 +38,7 @@ pub extern "C" fn add_two_in_rust(a: f64, b: f64) -> f64 {
 }
 
 #[no_mangle]
-pub extern "C" fn create_array() -> LumberJackVectorPtr {
+pub extern "C" fn create_vector() -> LumberJackVectorPtr {
     let vec = vec![1., 2., 3., 4.];
     LumberJackVectorPtr::from_vec(vec)
 }
@@ -51,6 +51,13 @@ pub extern "C" fn double_array(array_ptr: *mut f64) {
     double(&mut array);
     println!("RUST: Array after doubling is: {:?}", &array);
     mem::forget(array);
+}
+
+#[no_mangle]
+// Create an array from a pointer and then let it fall out of scope to remove from memory.
+pub extern "C" fn free_vector(array_ptr: *mut f64, n_elements: usize) {
+    let vector = unsafe { create_vec_from_ptr(array_ptr,  n_elements) };
+    println!("Created array and letting it fall out of scope!")
 }
 
 pub unsafe fn create_vec_from_ptr<T>(input: *mut T, n_elements: usize) -> Vec<T> {

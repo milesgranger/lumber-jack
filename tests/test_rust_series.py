@@ -34,7 +34,20 @@ class RustSeriesTestCase(unittest.TestCase):
         """
         Check creating an array from inside Rust and passing it to Python
         """
-        from lumberjack.cython.series import create_array_via_rust
-        vec = create_array_via_rust()
+        from lumberjack.cython.series import _create_array
+        vec = _create_array()
         logger.debug('Vector type: {}, and it looks like: {}, sum is: {}'.format(type(vec), vec, vec.sum()))
         self.assertEqual(vec.sum(), 10)
+
+
+    def test_free_array(self):
+        """
+        Test that when given a pointer to an lumberjack array, manually calling rust based 'free' will delete
+        that array
+        """
+        from lumberjack.cython.series import _free_vector, _create_array
+        array = create_array()
+        logger.debug('Array before dropping: {}'.format(array))
+        _free_vector(array)
+        logger.debug('Array afer dropping: {}'.format(array))
+

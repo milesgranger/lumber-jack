@@ -2,20 +2,30 @@
 # distutils: language = c++
 
 
-from .includes cimport add_two_in_rust, double_array, create_array
+from .includes cimport add_two_in_rust, double_array, create_vector, free_vector, LumberJackVectorPtr
 import numpy as np
 cimport numpy as np
 
 
 np.import_array()
 
+cdef _free_vector(LumberJackVectorPtr vector):
+    free_vector(vector.ptr, vector.len)
 
-cpdef create_array_via_rust():
-    vector = create_array()
+cdef np.ndarray create_array_from_rust_vector(LumberJackVectorPtr vector):
     cdef np.npy_intp shape[1]
     shape[0] = <np.npy_intp> vector.len
-    array = np.PyArray_SimpleNewFromData(1, shape, np.NPY_FLOAT64, vector.data)
+    array = np.PyArray_SimpleNewFromData(1, shape, np.NPY_FLOAT64, vector.ptr)
     return array
+
+def _create_array():
+    vector = get_rust_vector()
+    array = create_array_from_rust_vector(vector)
+    return array
+
+cdef LumberJackVectorPtr get_rust_vector():
+    vector = create_vector()
+    return vector
 
 
 cpdef float sum_two(float a, float b):
