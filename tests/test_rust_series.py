@@ -40,15 +40,17 @@ class RustSeriesTestCase(unittest.TestCase):
         self.assertEqual(vec.sum(), 10)
 
 
-    def test_free_array(self):
+    def test_from_numpy(self):
         """
         Test that when given a pointer to an lumberjack array, manually calling rust based 'free' will delete
         that array
         """
-        from lumberjack.cython.series import LumberJackSeries, get_lumberjack_vector
-        array = get_lumberjack_vector()
+        from lumberjack.cython.series import LumberJackSeries
 
-        logger.debug('Array before dropping: {}'.format(array))
-        logger.debug('Array afer dropping: {}'.format(array))
+        array = np.ones(shape=(10,), dtype=float)
+        series = LumberJackSeries.from_numpy(array)
+        logger.debug('Made series from numpy: {}'.format(series))
+        logger.debug('Deleted series, here is the original array: {}'.format(array))
+
 
 

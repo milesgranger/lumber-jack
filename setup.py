@@ -33,10 +33,20 @@ setup(
     name='lumber-jack',
     version=__version__,
     maintainer="Miles Granger",
-    keywords="pandas rust python data manipulation processing",
+    keywords="pandas rust python data manipulation processing dataframe series",
     url="https://github.com/milesgranger/lumber-jack",
-    description="Alpha work on adding additional and improved functionality to Pandas.",
-    long_description="Alpha work on adding additional and improved functionality to Pandas.",
+    description="Alpha work: Lightweight & efficient alternative to Pandas",
+    long_description= \
+        """"
+        Alpha work: Lightweight & efficient alternative to Pandas. 
+        All data manipulation and acquisition is done within Rust. The only data transfers into Python are done upon
+        request (given as numpy arrays) and small subsets of the underlying data for visual representation from within 
+        Python.
+        
+        The goal of the alpha work is mainly to help me better learn Rust, Cython and software craftsmanship in general.
+        
+        **If/when this breaks, you get to keep the sharp shiny pieces, but filing an issue is always welcome! ;)
+        """,
     cmdclass={
       'build_ext': BuildRustLib
     },
