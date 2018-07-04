@@ -16,7 +16,7 @@ pub mod alterations;
 
 #[repr(C)]
 pub struct LumberJackSeriesPtr {
-    ptr: *mut f64,
+    data_ptr: *mut f64,
     len: usize,
 
 }
@@ -25,7 +25,7 @@ impl LumberJackSeriesPtr {
     fn from_vec<T>(mut vec: Vec<T>) -> LumberJackSeriesPtr {
         vec.shrink_to_fit();
         let series_ptr = LumberJackSeriesPtr {
-            ptr: vec.as_ptr() as *mut f64,
+            data_ptr: vec.as_ptr() as *mut f64,
             len: vec.len(),
         };
         mem::forget(vec);
@@ -34,8 +34,8 @@ impl LumberJackSeriesPtr {
 }
 
 #[no_mangle]
-pub extern "C" fn create_lumberjack_series() -> LumberJackSeriesPtr {
-    let vec = vec![1., 2., 3., 4.];
+pub extern "C" fn arange(start: i32, stop: i32) -> LumberJackSeriesPtr {
+    let vec = (start..stop).map(|v| v as f64).collect();
     LumberJackSeriesPtr::from_vec(vec)
 }
 

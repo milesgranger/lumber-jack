@@ -1,12 +1,16 @@
 # -*- coding: utf-8 -*-
 # distutils: language = c++
 
+import logging
 
-from .includes cimport create_lumberjack_series, free_vector, LumberJackSeriesPtr, from_numpy_ptr
 import numpy as np
 cimport numpy as np
-from cython cimport view
 
+from cython cimport view
+from .includes cimport arange, free_vector, LumberJackSeriesPtr, from_numpy_ptr
+
+
+logger = logging.getLogger(__name__)
 
 np.import_array()
 
@@ -16,7 +20,7 @@ cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
     Create a LumberJackSeries object from a LumberjackSeriesPtr Cython definition
     """
     series = LumberJackSeries()
-    series.ptr = series_ptr.ptr
+    series.data_ptr = series_ptr.data_ptr
     series.len = series_ptr.len
     series.lj_series_ptr = series_ptr
     return series
@@ -25,13 +29,13 @@ cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
 cdef class LumberJackSeries:
 
     cdef LumberJackSeriesPtr lj_series_ptr
-    cdef double * ptr
+    cdef double * data_ptr
     cdef readonly int len
 
 
     @staticmethod
-    def linspace(int start, int stop):
-        series_ptr = create_lumberjack_series()
+    def arange(int start, int stop):
+        series_ptr = arange(start, stop)
         return create_lumberjack_series_from_ptr(series_ptr)
 
 
@@ -39,14 +43,14 @@ cdef class LumberJackSeries:
         """
         Provide a cython array view to the data
         """
-        cdef view.array array_view = <double[:self.len]> self.ptr
+        cdef view.array array_view = <double[:self.len]> self.data_ptr
         return array_view
 
     def to_numpy(self):
         """
         Convert this to numpy array
         """
-        cdef np.ndarray array = np.asarray(<double[:self.len]> self.ptr)
+        cdef np.ndarray array = np.asarray(<double[:self.len]> self.data_ptr)
         return array
 
     @staticmethod
@@ -80,8 +84,8 @@ cdef class LumberJackSeries:
 
 
     def __dealloc__(self):
-        print('Deallocating rust series!')
-        if self.ptr != NULL:
-            free_vector(self.ptr, self.len)
+        logger.debug('Deallocating rust series!')
+        if self.data_ptr != NULL:
+            free_vector(self.data_ptr, self.len)
 
 

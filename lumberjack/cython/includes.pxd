@@ -6,10 +6,10 @@ cdef extern from "./../rust/liblumberjack.h":
     void free_vector(double* ptr, int length);
 
     cdef struct LumberJackSeriesPtr:
-        double* ptr
+        double* data_ptr
         int len
 
-    LumberJackSeriesPtr create_lumberjack_series();
+    LumberJackSeriesPtr arange(int start, int stop);
     LumberJackSeriesPtr from_numpy_ptr(double * ptr, int length)
 
 
