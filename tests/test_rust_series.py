@@ -24,11 +24,13 @@ class RustSeriesTestCase(unittest.TestCase):
         """
         from lumberjack.cython.series import double_array_in_rust
         array = np.ones(10, dtype=np.double)
-        logger.debug('Array before passing to Rust: {}'.format(array))
+        logger.debug('Array before passing to Rust: {}'.format(array[:10]))
         result = double_array_in_rust(array)
-        logger.debug('Result of double array from rust: {}'.format(result))
-        logger.debug('Here is the array in Python: {}'.format(array))
+        logger.debug('Result of double array from rust: {}'.format(result[:10]))
+        logger.debug('Here is the array in Python: {}'.format(array[:10]))
         logger.debug('Original Array Id: {}, Result Array Id: {}'.format(id(array), id(result)))
+        self.assertEqual(array.sum(), result.sum())
+        self.assertEqual(id(array), id(result))
 
     def test_create_array_from_rust(self):
         """

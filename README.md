@@ -4,9 +4,26 @@
 
 ---
 
-This package strives to provide fast, safe and concurrent pre-processing tools for 
-Python. The core computations are written in Rust and wrapped with intuitive Python 
-interfaces.  
+First and foremost: This is a package I'm using to refine my craft using Python, Cython 
+and Rust together in a high-performance fashion. This package is in Alpha and in no-way
+can you expect this to be functional or reliable.
+
+### The goal:
+
+The _(long term)_ goal for this project is to provide a light-weight alternative to
+the fantastic `pandas`. I love and use pandas all the time, so this is what has 
+inspired me to making something similar; but excelling in a few areas such as minimizing
+memory footprint and speeding up certain computations via Rust's speed and safety 
+guarantees.  
+
+This project shall have the same concept of `dataframe` & `series`; these objects 
+will be stored as Rust structures. When "displayed" in Python
+it will merely be some meta-data description of the vector. Most computations will
+take place there, those which can't or perhaps better implemented in numpy will continue 
+to be done in numpy (via pointer transferals, thus free of copies).
+
+The point is, I'm striving to practice efficiency, parallelism, safety & speed with this 
+project while maintaining some of the most valuable functionality of pandas. 
 
 ---
 
@@ -32,7 +49,12 @@ pip uninstall lumber-jack
 ```
 ---
 
-### Working Tools:
+### Working Pandas like operations:
+```commandline
+# Nothing yet, check back soon! :)
+```
+
+### Working Alteration Tools:
 
 Split arrays of text which are separated by < something > into a one-hot encoded ndarray
 
@@ -43,6 +65,3 @@ Split arrays of text which are separated by < something > into a one-hot encoded
 (['hello', 'there', 'hi'], [[1, 1, 0], [0, 1, 1]])
 
 ```
-
-**Note**: This is also a package for attempting to re-implement a pandas-like tool, but this 
-is _far_ in the future...in a land far, far away. :)

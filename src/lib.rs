@@ -18,6 +18,7 @@ pub mod alterations;
 pub struct LumberJackSeriesPtr {
     ptr: *mut f64,
     len: usize,
+
 }
 
 impl LumberJackSeriesPtr {
@@ -29,6 +30,11 @@ impl LumberJackSeriesPtr {
         };
         mem::forget(vec);
         series_ptr
+    }
+
+    #[no_mangle]
+    pub extern "C" fn return_two(&self) -> i64 {
+        2
     }
 }
 
@@ -45,7 +51,7 @@ pub extern "C" fn create_lumberjack_series() -> LumberJackSeriesPtr {
 
 #[no_mangle]
 pub extern "C" fn from_numpy_ptr(array_ptr: *mut f64, n_elements: usize) -> LumberJackSeriesPtr {
-    let mut array = unsafe { create_vec_from_ptr(array_ptr, n_elements) };
+    let array = unsafe { create_vec_from_ptr(array_ptr, n_elements) };
     LumberJackSeriesPtr::from_vec(array)
 }
 

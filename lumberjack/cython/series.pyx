@@ -43,6 +43,7 @@ cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
     series = LumberJackSeries()
     series.ptr = series_ptr.ptr
     series.len = series_ptr.len
+    series.lj_series_ptr = series_ptr
     return series
 
 
@@ -58,6 +59,7 @@ cpdef double_array_in_rust(arr):
 
 cdef class LumberJackSeries:
 
+    cdef LumberJackSeriesPtr lj_series_ptr
     cdef double * ptr
     cdef readonly int len
 
