@@ -59,7 +59,7 @@ pub extern "C" fn double_array(array_ptr: *mut f64) {
 // Create an array from a pointer and then let it fall out of scope to remove from memory.
 pub extern "C" fn free_vector(array_ptr: *mut f64, n_elements: usize) {
     let _vector = unsafe { create_vec_from_ptr(array_ptr,  n_elements) };
-    println!("Created array and letting it fall out of scope!")
+    //println!("Created array and letting it fall out of scope!")
 }
 
 pub unsafe fn create_vec_from_ptr<T>(input: *mut T, n_elements: usize) -> Vec<T> {

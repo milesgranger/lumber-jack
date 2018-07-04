@@ -50,8 +50,12 @@ pip uninstall lumber-jack
 ---
 
 ### Working Pandas like operations:
-```commandline
-# Nothing yet, check back soon! :)
+
+##### There isn't much, but check back soon! ;)
+```python
+from lumberjack.cython.series import LumberJackSeries
+
+series = LumberJackSeries.arange(0, 10000)  # ~2x faster than numpy.arange
 ```
 
 ### Working Alteration Tools:
@@ -59,9 +63,9 @@ pip uninstall lumber-jack
 Split arrays of text which are separated by < something > into a one-hot encoded ndarray
 
 ```python
->>> from lumberjack import alterations
->>> raw_texts = ['hello, there', 'hi, there']
->>> alterations.split_n_one_hot_encode(raw_texts, sep=',', cutoff=0)
+from lumberjack import alterations
+raw_texts = ['hello, there', 'hi, there']
+alterations.split_n_one_hot_encode(raw_texts, sep=',', cutoff=0)
 (['hello', 'there', 'hi'], [[1, 1, 0], [0, 1, 1]])
 
 ```

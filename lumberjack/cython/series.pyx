@@ -35,7 +35,10 @@ cdef class LumberJackSeries:
 
     @staticmethod
     def arange(int start, int stop):
-        series_ptr = arange(start, stop)
+        """
+        This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
+        """
+        cpdef LumberJackSeriesPtr series_ptr = arange(start, stop)
         return create_lumberjack_series_from_ptr(series_ptr)
 
 
@@ -84,7 +87,7 @@ cdef class LumberJackSeries:
 
 
     def __dealloc__(self):
-        logger.debug('Deallocating rust series!')
+        #logger.debug('Deallocating rust series!')
         if self.data_ptr != NULL:
             free_vector(self.data_ptr, self.len)
 
