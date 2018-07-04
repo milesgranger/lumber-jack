@@ -2,38 +2,13 @@
 # distutils: language = c++
 
 
-from .includes cimport add_two_in_rust, double_array, create_lumberjack_series, free_vector, LumberJackSeriesPtr, from_numpy_ptr
+from .includes cimport create_lumberjack_series, free_vector, LumberJackSeriesPtr, from_numpy_ptr
 import numpy as np
 cimport numpy as np
+from cython cimport view
 
 
 np.import_array()
-
-cdef np.ndarray create_array_from_rust_vector(LumberJackSeriesPtr vector):
-    cdef np.npy_intp shape[1]
-    shape[0] = <np.npy_intp> vector.len
-    array = np.PyArray_SimpleNewFromData(1, shape, np.NPY_FLOAT64, vector.ptr)
-    return array
-
-cpdef np.ndarray _create_array():
-    vector = get_rust_vector()
-    array = create_array_from_rust_vector(vector)
-    return array
-
-cpdef LumberJackSeries get_lumberjack_vector():
-    vector = create_lumberjack_series()
-    v = LumberJackSeries.from_lumberjack_ptr(vector)
-    return v
-
-cdef LumberJackSeriesPtr get_rust_vector():
-    vector = create_lumberjack_series()
-    return vector
-
-
-cpdef float sum_two(float a, float b):
-    cdef float result
-    result = add_two_in_rust(a, b)
-    return result
 
 
 cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
@@ -47,21 +22,32 @@ cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
     return series
 
 
-cpdef double_array_in_rust(arr):
-
-    if not arr.flags['C_CONTIGUOUS']:
-        arr = np.ascontiguousarray(arr) # Makes a contiguous copy of the numpy array.
-
-    cdef double[::1] arr_view = arr
-    double_array(&arr_view[0])
-    return arr
-
-
 cdef class LumberJackSeries:
 
     cdef LumberJackSeriesPtr lj_series_ptr
     cdef double * ptr
     cdef readonly int len
+
+
+    @staticmethod
+    def linspace(int start, int stop):
+        series_ptr = create_lumberjack_series()
+        return create_lumberjack_series_from_ptr(series_ptr)
+
+
+    def to_cython_array_view(self):
+        """
+        Provide a cython array view to the data
+        """
+        cdef view.array array_view = <double[:self.len]> self.ptr
+        return array_view
+
+    def to_numpy(self):
+        """
+        Convert this to numpy array
+        """
+        cdef np.ndarray array = np.asarray(<double[:self.len]> self.ptr)
+        return array
 
     @staticmethod
     cdef LumberJackSeries from_lumberjack_ptr(LumberJackSeriesPtr series_ptr):
@@ -69,8 +55,7 @@ cdef class LumberJackSeries:
         Create series from Cython/C struct of LumberJackSeriesPtr which holds meta
         data about the underlying Rust vector
         """
-        series = create_lumberjack_series_from_ptr(series_ptr)
-        return series
+        return create_lumberjack_series_from_ptr(series_ptr)
 
     @staticmethod
     def from_numpy(np.ndarray array):

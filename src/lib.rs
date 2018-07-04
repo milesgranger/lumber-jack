@@ -31,16 +31,6 @@ impl LumberJackSeriesPtr {
         mem::forget(vec);
         series_ptr
     }
-
-    #[no_mangle]
-    pub extern "C" fn return_two(&self) -> i64 {
-        2
-    }
-}
-
-#[no_mangle]
-pub extern "C" fn add_two_in_rust(a: f64, b: f64) -> f64 {
-    a + b
 }
 
 #[no_mangle]
