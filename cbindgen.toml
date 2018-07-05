@@ -1,0 +1,5 @@
+autogen_warning = "/* WARNING: This file created automatically by cbindgen. Do not modify manually. */"
+language = "C++"
+
+[export]
+include = ["DType"]

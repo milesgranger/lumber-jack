@@ -1,12 +1,33 @@
 #![allow(dead_code)]
 
 use super::ndarray::prelude::*;
-use std::fmt;
+use std::{fmt, mem};
 use std::iter::{IntoIterator};
 use num::Zero;
 use ndarray::{OwnedRepr, ArrayBase};
 
+pub mod series_funcs;
 
+#[repr(C)]
+pub struct LumberJackSeriesPtr {
+    data_ptr: *mut f64,
+    len: usize,
+
+}
+
+impl LumberJackSeriesPtr {
+    fn from_vec<T>(mut vec: Vec<T>) -> LumberJackSeriesPtr {
+        vec.shrink_to_fit();
+        let series_ptr = LumberJackSeriesPtr {
+            data_ptr: vec.as_mut_ptr() as *mut f64,
+            len: vec.len(),
+        };
+        mem::forget(vec);
+        series_ptr
+    }
+}
+
+#[repr(C)]
 #[derive(Debug)]
 pub enum DType {
     Float64,
