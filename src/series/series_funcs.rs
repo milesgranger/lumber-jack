@@ -3,12 +3,6 @@ use super::LumberJackSeriesPtr;
 
 
 #[no_mangle]
-pub extern "C" fn aaarange(start: i32, stop: i32) -> LumberJackSeriesPtr {
-    let vec = (start..stop).map(|v| v as f64).collect();
-    LumberJackSeriesPtr::from_vec(vec)
-}
-
-#[no_mangle]
 pub extern "C" fn arange(start: i32, stop: i32) -> LumberJackSeriesPtr {
     let vec = (start..stop).map(|v| v as f64).collect();
     LumberJackSeriesPtr::from_vec(vec)

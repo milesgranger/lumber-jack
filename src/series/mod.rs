@@ -31,9 +31,6 @@ impl LumberJackSeriesPtr {
 #[derive(Debug)]
 pub enum DType {
     Float64,
-    String,
-    Int64,
-    USize
 }
 
 /// Trait to define supported dtypes.
@@ -42,9 +39,9 @@ pub trait LumberJackData {
 }
 
 /// Support the usize dtype
-impl LumberJackData for usize {
+impl LumberJackData for f64 {
     fn kind(&self) -> DType {
-        DType::USize
+        DType::Float64
     }
 }
 
