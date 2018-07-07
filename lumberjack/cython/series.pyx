@@ -27,10 +27,12 @@ cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
 
 cpdef np.ndarray get_boxed_int():
     cdef np.int32_t** series = c_get_boxed_int()
+    cdef np.int32_t array[2]
 
-    cdef np.ndarray array = np.asarray(<np.int32_t[:2]> series[0])
-    #cdef np.ndarray array = np.asarray(<int[:2]> series.data)
-    return array
+    for i in range(2):
+        array[i] = series[i][0]
+    #cdef np.ndarray array = np.asarray(<np.int32_t[0:2]> series[0])
+    return np.asarray(array)
 
 cdef class LumberJackSeries:
 
