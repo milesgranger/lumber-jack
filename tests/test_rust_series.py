@@ -12,6 +12,11 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
+    def test_boxed_int(self):
+        from lumberjack.cython.series import get_boxed_int
+        value = get_boxed_int()
+        logger.debug('Boxed value: {}'.format(value))
+
     def test_from_arange(self):
         """
         Check creating an array from inside Rust and passing it to Python

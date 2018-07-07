@@ -12,7 +12,6 @@ pub mod series_funcs;
 pub struct LumberJackSeriesPtr {
     data_ptr: *mut f64,
     len: usize,
-
 }
 
 impl LumberJackSeriesPtr {

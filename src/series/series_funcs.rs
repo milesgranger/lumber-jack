@@ -1,5 +1,17 @@
 use std::mem;
-use super::LumberJackSeriesPtr;
+use super::{LumberJackSeriesPtr};
+
+#[no_mangle]
+pub extern "C" fn get_boxed_int() -> *mut *mut i32 {
+    let mut val = vec![
+        Box::into_raw(Box::new(1_i32)),
+        Box::into_raw(Box::new(2_i32))
+    ];
+
+    let ptr = val.as_mut_ptr();
+    mem::forget(val);
+    ptr
+}
 
 
 #[no_mangle]
