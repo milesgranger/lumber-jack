@@ -1,27 +1,19 @@
 use std::mem;
-use super::{LumberJackSeriesPtr};
+use super::{LumberJackSeriesPtr, LJData, DType, LumberJackData};
 
 #[no_mangle]
-pub extern "C" fn get_boxed_int() -> *mut *mut i32 {
-    let mut val = vec![
-        Box::into_raw(Box::new(1_i32)),
-        Box::into_raw(Box::new(2_i32))
-    ];
-
-    let ptr = val.as_mut_ptr();
-    mem::forget(val);
-    ptr
-}
-
-
-#[no_mangle]
-pub extern "C" fn arange(start: i32, stop: i32) -> LumberJackSeriesPtr {
-    let vec = (start..stop).map(|v| v as f64).collect();
-    LumberJackSeriesPtr::from_vec(vec)
+pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> LumberJackSeriesPtr
+{
+    match dtype {
+        DType::Float64 => LumberJackSeriesPtr::from_vec((start..stop).map(|v| v as f64).collect()),
+        DType::Int32 => LumberJackSeriesPtr::from_vec((start..stop).map(|v| v as i32).collect()),
+    }
 }
 
 #[no_mangle]
-pub extern "C" fn from_numpy_ptr(array_ptr: *mut f64, n_elements: usize) -> LumberJackSeriesPtr {
+pub extern "C" fn from_numpy_ptr<T>(array_ptr: *mut T, n_elements: usize) -> LumberJackSeriesPtr
+    where T: LumberJackData + 'static
+{
     let array = unsafe { create_vec_from_ptr(array_ptr, n_elements) };
     LumberJackSeriesPtr::from_vec(array)
 }
@@ -43,7 +35,9 @@ pub extern "C" fn free_vector(array_ptr: *mut f64, n_elements: usize) {
     //println!("Created array and letting it fall out of scope!")
 }
 
-pub unsafe fn create_vec_from_ptr<T>(input: *mut T, n_elements: usize) -> Vec<T> {
+pub unsafe fn create_vec_from_ptr<T>(input: *mut T, n_elements: usize) -> Vec<T>
+    where T: LumberJackData + 'static
+{
     assert!(!input.is_null());
     let v1 = Vec::from_raw_parts(input, n_elements, n_elements);
     v1

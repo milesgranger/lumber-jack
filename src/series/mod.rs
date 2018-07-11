@@ -10,15 +10,26 @@ pub mod series_funcs;
 
 #[repr(C)]
 pub struct LumberJackSeriesPtr {
-    data_ptr: *mut f64,
+    data_ptr: *mut LumberJackData,
     len: usize,
 }
 
-impl LumberJackSeriesPtr {
-    fn from_vec<T>(mut vec: Vec<T>) -> LumberJackSeriesPtr {
+fn ptr_from_vec<T: LumberJackData>(mut vec: Vec<T>) -> *mut T {
+    vec.shrink_to_fit();
+    let ptr = vec.as_mut_ptr();
+    mem::forget(vec);
+    ptr
+}
+
+impl LumberJackSeriesPtr
+{
+
+    fn from_vec<T>(mut vec: Vec<T>) -> Self
+        where T: LumberJackData + 'static
+    {
         vec.shrink_to_fit();
         let series_ptr = LumberJackSeriesPtr {
-            data_ptr: vec.as_mut_ptr() as *mut f64,
+            data_ptr: vec.as_mut_ptr() as *mut T,
             len: vec.len(),
         };
         mem::forget(vec);
@@ -26,10 +37,22 @@ impl LumberJackSeriesPtr {
     }
 }
 
+pub enum LJData {
+    Float64 {
+        data: Vec<f64>,
+        dtype: DType
+    },
+    Int32 {
+        data: Vec<i32>,
+        dtype: DType
+    }
+}
+
 #[repr(C)]
 #[derive(Debug)]
 pub enum DType {
     Float64,
+    Int32
 }
 
 /// Trait to define supported dtypes.
@@ -41,6 +64,13 @@ pub trait LumberJackData {
 impl LumberJackData for f64 {
     fn kind(&self) -> DType {
         DType::Float64
+    }
+}
+
+/// Support the usize dtype
+impl LumberJackData for i32 {
+    fn kind(&self) -> DType {
+        DType::Int32
     }
 }
 
