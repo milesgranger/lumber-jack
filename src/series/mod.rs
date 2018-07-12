@@ -12,6 +12,7 @@ pub mod series_funcs;
 pub struct LumberJackSeriesPtr {
     data_ptr: *mut LumberJackData,
     len: usize,
+    dtype: DType
 }
 
 fn ptr_from_vec<T: LumberJackData>(mut vec: Vec<T>) -> *mut T {
@@ -24,27 +25,17 @@ fn ptr_from_vec<T: LumberJackData>(mut vec: Vec<T>) -> *mut T {
 impl LumberJackSeriesPtr
 {
 
-    fn from_vec<T>(mut vec: Vec<T>) -> Self
+    fn from_vec<T>(mut vec: Vec<T>, dtype: DType) -> Self
         where T: LumberJackData + 'static
     {
         vec.shrink_to_fit();
         let series_ptr = LumberJackSeriesPtr {
             data_ptr: vec.as_mut_ptr() as *mut T,
             len: vec.len(),
+            dtype: dtype
         };
         mem::forget(vec);
         series_ptr
-    }
-}
-
-pub enum LJData {
-    Float64 {
-        data: Vec<f64>,
-        dtype: DType
-    },
-    Int32 {
-        data: Vec<i32>,
-        dtype: DType
     }
 }
 

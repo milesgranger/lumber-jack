@@ -1,12 +1,12 @@
 use std::mem;
-use super::{LumberJackSeriesPtr, LJData, DType, LumberJackData};
+use super::{LumberJackSeriesPtr, DType, LumberJackData};
 
 #[no_mangle]
 pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> LumberJackSeriesPtr
 {
     match dtype {
-        DType::Float64 => LumberJackSeriesPtr::from_vec((start..stop).map(|v| v as f64).collect()),
-        DType::Int32 => LumberJackSeriesPtr::from_vec((start..stop).map(|v| v as i32).collect()),
+        DType::Float64 => LumberJackSeriesPtr::from_vec((start..stop).map(|v| v as f64).collect(), dtype),
+        DType::Int32 => LumberJackSeriesPtr::from_vec((start..stop).map(|v| v as i32).collect(), dtype),
     }
 }
 
@@ -15,7 +15,7 @@ pub extern "C" fn from_numpy_ptr<T>(array_ptr: *mut T, n_elements: usize) -> Lum
     where T: LumberJackData + 'static
 {
     let array = unsafe { create_vec_from_ptr(array_ptr, n_elements) };
-    LumberJackSeriesPtr::from_vec(array)
+    LumberJackSeriesPtr::from_vec(array, DType::Float64)
 }
 
 #[no_mangle]
