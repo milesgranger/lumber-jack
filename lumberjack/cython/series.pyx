@@ -7,7 +7,7 @@ import numpy as np
 cimport numpy as np
 
 from cython cimport view
-from .includes cimport arange, free_vector, LumberJackSeriesPtr, from_numpy_ptr, get_boxed_int as c_get_boxed_int
+from .includes cimport arange, free_vector, LumberJackSeriesPtr, from_numpy_ptr
 
 
 logger = logging.getLogger(__name__)
@@ -25,14 +25,6 @@ cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
     series.lj_series_ptr = series_ptr
     return series
 
-cpdef np.ndarray get_boxed_int():
-    cdef np.int32_t** series = c_get_boxed_int()
-    cdef np.int32_t array[2]
-
-    for i in range(2):
-        array[i] = series[i][0]
-    #cdef np.ndarray array = np.asarray(<np.int32_t[0:2]> series[0])
-    return np.asarray(array)
 
 cdef class LumberJackSeries:
 
