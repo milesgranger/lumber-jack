@@ -1,44 +1,35 @@
 #![allow(dead_code)]
 
-use super::ndarray::prelude::*;
-use std::{fmt, mem};
-use std::iter::{IntoIterator};
-use num::Zero;
-use ndarray::{OwnedRepr, ArrayBase};
+use std::mem;
+use std::iter::FromIterator;
 
 pub mod series_funcs;
 
+
+/// This enum is what Cython will use to read the data created from Rust
 #[repr(C)]
-pub struct LumberJackSeriesPtr {
-    data_ptr: *mut LumberJackData,
-    len: usize,
-    dtype: DType
-}
-
-fn ptr_from_vec<T: LumberJackData>(mut vec: Vec<T>) -> *mut T {
-    vec.shrink_to_fit();
-    let ptr = vec.as_mut_ptr();
-    mem::forget(vec);
-    ptr
-}
-
-impl LumberJackSeriesPtr
-{
-
-    fn from_vec<T>(mut vec: Vec<T>, dtype: DType) -> Self
-        where T: LumberJackData + 'static
-    {
-        vec.shrink_to_fit();
-        let series_ptr = LumberJackSeriesPtr {
-            data_ptr: vec.as_mut_ptr() as *mut T,
-            len: vec.len(),
-            dtype: dtype
-        };
-        mem::forget(vec);
-        series_ptr
+pub enum DataPtr {
+    Float64 {
+        data_ptr: *mut f64,
+        len: usize
+    },
+    Int32 {
+        data_ptr: *mut i32,
+        len: usize
     }
 }
 
+
+/// Container for various supported data types
+#[derive(Debug)]
+pub enum Data {
+    Float64(Vec<f64>),
+    Int32(Vec<i32>)
+}
+
+
+/// Define which data types can be requested or cast to.
+/// to serve as flags between Cython and Rust for data type conversions / creations
 #[repr(C)]
 #[derive(Debug)]
 pub enum DType {
@@ -46,106 +37,97 @@ pub enum DType {
     Int32
 }
 
-/// Trait to define supported dtypes.
-pub trait LumberJackData {
-    fn kind(&self) -> DType;
-}
-
-/// Support the usize dtype
-impl LumberJackData for f64 {
-    fn kind(&self) -> DType {
-        DType::Float64
+impl FromIterator<i32> for Data {
+    fn from_iter<I: IntoIterator<Item=i32>>(iter: I) -> Data {
+        let mut vec = Vec::new();
+        for v in iter {
+            vec.push(v)
+        }
+        Data::Int32(vec)
     }
 }
 
-/// Support the usize dtype
-impl LumberJackData for i32 {
-    fn kind(&self) -> DType {
-        DType::Int32
+impl FromIterator<f64> for Data {
+    fn from_iter<I: IntoIterator<Item=f64>>(iter: I) -> Data {
+        let mut vec = Vec::new();
+        for v in iter {
+            vec.push(v)
+        }
+        Data::Float64(vec)
     }
 }
 
-/// Implement Debug for the LumberJackData trait
-impl fmt::Debug for LumberJackData {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "LumberJackData[{:?}]", self.kind())
-    }
-}
-
-
-/// Series struct, with four type parameters where T1 & D1 represent the data type and
-/// data dimension respectively for the index array, and T2 & D2 for the series values
-#[derive(Debug)]
-pub struct Series<T>
-    where T: LumberJackData
+#[repr(C)]
+pub struct Series
 {
-    index: ArrayBase<OwnedRepr<T>, Dim<[usize; 1]>>,
-    values: ArrayBase<OwnedRepr<T>, Dim<[usize; 1]>>,
-    dtype: DType
+    data: Data
+}
+
+/// Return a vector from a pointer
+pub unsafe fn vec_from_raw<T>(ptr: *mut T, n_elements: usize) -> Vec<T> {
+    Vec::from_raw_parts(ptr, n_elements, n_elements)
 }
 
 
-impl<T> Series<T>
-    where T: LumberJackData + Clone + Zero
+impl Series
 {
-
-    pub fn new<I>(index: I, values: I) -> Self
-        where I: IntoIterator<Item=T>
+    /// Create Series from a range of i32 values cast as DType
+    pub fn from_arange(start: i32, stop: i32, dtype: DType) -> Self
     {
-        let index = Array::from_iter(index.into_iter());
-        let values = Array::from_iter(values.into_iter());
-        let val = values[0].clone();
-        let dtype = val.kind();
-        Series{index, values, dtype}
+        let data = match dtype {
+            DType::Float64 => (start..stop).map(|v| v as f64).collect(),
+            DType::Int32 => (start..stop).map(|v| v as i32).collect()
+        };
+
+        Self { data }
     }
 
-
-    pub fn map<F>(&self, func: F) -> Self
-        where F: Fn(&T) -> T
-    {
-        /*
-            Map an arbitrary function over the values of a series and return a new series result.
-        */
-        let mut values = Vec::new();
-        for val in self.values.iter() {
-            let result = func(val);
-            values.push(result);
-        }
-        Series::new(self.index.to_vec(), values)
+    /// Return a Series from a DataPtr
+    pub fn from_ptr(ptr: DataPtr) -> Self {
+        let data: Data = match ptr {
+            DataPtr::Int32 { data_ptr, len } => {
+                Data::Int32(unsafe {vec_from_raw(data_ptr, len)})
+            },
+            DataPtr::Float64 { data_ptr, len } => {
+                Data::Float64(unsafe {vec_from_raw(data_ptr, len)})
+            }
+        };
+        Self { data }
     }
 
+    pub fn to_ptr(mut self) -> DataPtr {
 
-    pub fn len(&self) -> usize {
-        self.values.len()
-    }
+        // Create a pointer which has the raw vector pointer and does not let it fall out of
+        // scope by forgetting it, as it will be used later, and 'self' will be dropped.
+        // TODO: Consider boxing self and returning that along with the DataPtr instead
+        let ptr = match self.data {
 
-    pub fn sum(&self) -> T {
-        self.values.scalar_sum()
-    }
+            Data::Float64(ref mut vec) => {
+                vec.shrink_to_fit();
+                let ptr = DataPtr::Float64 {
+                    data_ptr: vec.as_mut_ptr(),
+                    len: vec.len()
+                };
+                mem::forget(vec);
+                ptr
+            },
 
-    pub fn append<I: IntoIterator<Item=T>>(&mut self, index: I, values: I, inplace: bool) -> Option<Self>
-        where T: Clone
-    {
-        // Append an iterable to Self or return a copy
-        let mut new_index = self.index.to_vec();
-        let mut new_values = self.values.to_vec();
-        for (idx, value) in index.into_iter().zip(values.into_iter()) {
-            new_values.push(value);
-            new_index.push(idx);
-        }
+            Data::Int32(ref mut vec) => {
+                vec.shrink_to_fit();
+                let ptr = DataPtr::Int32 {
+                    data_ptr: vec.as_mut_ptr(),
+                    len: vec.len()
+                };
+                mem::forget(vec);
+                ptr
+            }
+        };
 
-        if inplace {
-            self.index = Array::from_vec(new_index);
-            self.values = Array::from_vec(new_values);
-            None
-        } else {
-            Some(Series::new(new_index, new_values))
-        }
+        ptr
     }
 }
 
-
-
-
-
-
+#[no_mangle]
+pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
+    Series::from_arange(start, stop, dtype).to_ptr()
+}

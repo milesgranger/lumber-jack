@@ -2,4 +2,4 @@ autogen_warning = "/* WARNING: This file created automatically by cbindgen. Do n
 language = "C++"
 
 [export]
-include = ["DType"]
+include = ["DType", "DataPtr"]
