@@ -82,27 +82,31 @@ impl Series
         Self { data }
     }
 
-    /// Return a Series from a DataPtr
-    pub fn from_ptr(ptr: DataPtr) -> Self {
-        let data: Data = match ptr {
-            DataPtr::Int32 { data_ptr, len } => {
-                Data::Int32(unsafe {vec_from_raw(data_ptr, len)})
-            },
+    /// Return a series from DataPtr
+    pub fn from_data_ptr(ptr: DataPtr) -> Self {
+        match ptr {
             DataPtr::Float64 { data_ptr, len } => {
-                Data::Float64(unsafe {vec_from_raw(data_ptr, len)})
+                Self {
+                    data: Data::Float64(unsafe { vec_from_raw(data_ptr, len)})
+                }
+            },
+            DataPtr::Int32 { data_ptr, len } => {
+                Self {
+                    data: Data::Int32(unsafe { vec_from_raw(data_ptr, len)})
+                }
             }
-        };
-        Self { data }
+        }
     }
 
-    pub fn to_ptr(mut self) -> DataPtr {
+    /// Build a Series object from the DataPtr enum
+    pub fn into_data_ptr(self) -> DataPtr {
 
         // Create a pointer which has the raw vector pointer and does not let it fall out of
         // scope by forgetting it, as it will be used later, and 'self' will be dropped.
         // TODO: Consider boxing self and returning that along with the DataPtr instead
-        let ptr = match self.data {
+        let data_ptr = match self.data {
 
-            Data::Float64(ref mut vec) => {
+            Data::Float64(mut vec) => {
                 vec.shrink_to_fit();
                 let ptr = DataPtr::Float64 {
                     data_ptr: vec.as_mut_ptr(),
@@ -112,7 +116,7 @@ impl Series
                 ptr
             },
 
-            Data::Int32(ref mut vec) => {
+            Data::Int32(mut vec) => {
                 vec.shrink_to_fit();
                 let ptr = DataPtr::Int32 {
                     data_ptr: vec.as_mut_ptr(),
@@ -123,11 +127,11 @@ impl Series
             }
         };
 
-        ptr
+        data_ptr
     }
 }
 
 #[no_mangle]
 pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
-    Series::from_arange(start, stop, dtype).to_ptr()
+    Series::from_arange(start, stop, dtype).into_data_ptr()
 }
