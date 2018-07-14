@@ -57,7 +57,7 @@ impl FromIterator<f64> for Data {
     }
 }
 
-#[repr(C)]
+/// Core data structure of LumberJack
 pub struct Series
 {
     data: Data
@@ -131,7 +131,19 @@ impl Series
     }
 }
 
+
+/*
+    Function to be exposed to C below here and to be moved elsewhere later.
+*/
+
+/// Create Series from arange and pass back as DataPtr
 #[no_mangle]
 pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
     Series::from_arange(start, stop, dtype).into_data_ptr()
+}
+
+/// Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
+#[no_mangle]
+pub extern "C" fn free_series(data_ptr: DataPtr) {
+    let _series = Series::from_data_ptr(data_ptr);
 }

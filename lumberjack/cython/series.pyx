@@ -7,7 +7,7 @@ import numpy as np
 cimport numpy as np
 
 from cython cimport view
-from .includes cimport arange, free_vector, LumberJackSeriesPtr, from_numpy_ptr
+from .includes cimport free_series, arange, DataPtr, DType
 
 
 logger = logging.getLogger(__name__)
@@ -15,20 +15,9 @@ logger = logging.getLogger(__name__)
 np.import_array()
 
 
-cdef create_lumberjack_series_from_ptr(LumberJackSeriesPtr series_ptr):
-    """ 
-    Create a LumberJackSeries object from a LumberjackSeriesPtr Cython definition
-    """
-    series = LumberJackSeries()
-    series.data_ptr = series_ptr.data_ptr
-    series.len = series_ptr.len
-    series.lj_series_ptr = series_ptr
-    return series
-
-
 cdef class LumberJackSeries:
 
-    cdef LumberJackSeriesPtr lj_series_ptr
+    cdef DataPtr lj_series_ptr
     cdef double * data_ptr
     cdef readonly int len
 
@@ -38,8 +27,9 @@ cdef class LumberJackSeries:
         """
         This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
         """
-        cpdef LumberJackSeriesPtr series_ptr = arange(start, stop)
-        return create_lumberjack_series_from_ptr(series_ptr)
+        cdef DataPtr ptr = arange(start, stop, DType.Float64)
+        cdef view.array array_view = <double[:4]> ptr.float64.data_ptr
+        return array_view
 
 
     def to_cython_array_view(self):
@@ -57,12 +47,12 @@ cdef class LumberJackSeries:
         return array
 
     @staticmethod
-    cdef LumberJackSeries from_lumberjack_ptr(LumberJackSeriesPtr series_ptr):
+    cdef from_lumberjack_ptr(DataPtr series_ptr):
         """
         Create series from Cython/C struct of LumberJackSeriesPtr which holds meta
         data about the underlying Rust vector
         """
-        return create_lumberjack_series_from_ptr(series_ptr)
+        return 'Done!'
 
     @staticmethod
     def from_numpy(np.ndarray array):
@@ -78,9 +68,9 @@ cdef class LumberJackSeries:
 
         cdef double[::1] arr_view = array
 
-        series_ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
-        series = create_lumberjack_series_from_ptr(series_ptr)
-        return series
+        #series_ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
+        #series = create_lumberjack_series_from_ptr(series_ptr)
+        #return series
 
     def __repr__(self):
         return 'LumberJackSeries(length: {})'.format(self.len)
@@ -89,6 +79,6 @@ cdef class LumberJackSeries:
     def __dealloc__(self):
         #logger.debug('Deallocating rust series!')
         if self.data_ptr != NULL:
-            free_vector(self.data_ptr, self.len)
+            free_series(self.lj_series_ptr)
 
 

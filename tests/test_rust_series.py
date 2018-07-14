@@ -12,11 +12,14 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
-    def test_boxed_int(self):
-        from lumberjack.cython.series import get_boxed_int
-        value = get_boxed_int()
-        logger.debug('Boxed value: {}'.format(value))
+    def test_arange(self):
+        from lumberjack.cython.series import LumberJackSeries
 
+        series = LumberJackSeries.arange(0, 4)
+        logger.debug('Series: {} with sum of {}'.format(series, np.asarray(series).sum()))
+
+
+    '''
     def test_from_arange(self):
         """
         Check creating an array from inside Rust and passing it to Python
@@ -45,6 +48,6 @@ class RustSeriesTestCase(unittest.TestCase):
         array = np.ones(shape=(10,), dtype=float)
         series = LumberJackSeries.from_numpy(array)
         logger.debug('Made series from numpy: {}'.format(series))
-
+    '''
 
 
