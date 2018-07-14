@@ -16,7 +16,7 @@ class RustSeriesTestCase(unittest.TestCase):
         from lumberjack.cython.series import LumberJackSeries
 
         series = LumberJackSeries.arange(0, 4)
-        logger.debug('Series: {} with sum of {}'.format(series, np.asarray(series).sum()))
+        logger.debug('Series: {} with sum of {}'.format(series, np.asarray(series.array_view).sum()))
 
 
     '''

@@ -58,6 +58,7 @@ impl FromIterator<f64> for Data {
 }
 
 /// Core data structure of LumberJack
+#[derive(Debug)]
 pub struct Series
 {
     data: Data
@@ -146,4 +147,5 @@ pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
 #[no_mangle]
 pub extern "C" fn free_series(data_ptr: DataPtr) {
     let _series = Series::from_data_ptr(data_ptr);
+    println!("Got series: {:?}, letting it fall out of scope!", &_series);
 }
