@@ -7,7 +7,7 @@ import numpy as np
 cimport numpy as np
 
 from cython cimport view
-from .includes cimport free_series, arange, DataPtr, DType, Tag
+from .includes cimport free_series, arange, SeriesPtr, DType, Tag
 
 
 logger = logging.getLogger(__name__)
@@ -15,71 +15,72 @@ logger = logging.getLogger(__name__)
 np.import_array()
 
 
-cdef LumberJackSeries create_lj_series_from_series_ptr(DataPtr ptr):
+cdef LumberJackSeries create_lj_series_from_series_ptr(SeriesPtr ptr):
     series = LumberJackSeries()
-    cdef _DataPtr _data_ptr
-    _data_ptr = _DataPtr()
+    cdef _SeriesPtr _series_ptr
+    _series_ptr = _SeriesPtr()
 
     if ptr.tag == Tag.Tag_Float64:
-        _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr
-        _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
-        _data_ptr.len = ptr.float64.len
+        _series_ptr.vec_ptr_float64 = ptr.float64.data_ptr
+        _series_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
+        _series_ptr.len = ptr.float64.len
 
     elif ptr.tag == Tag.Tag_Int32:
-        _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr
-        _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
-        _data_ptr.len = ptr.int32.len
+        _series_ptr.vec_ptr_int32 = ptr.int32.data_ptr
+        _series_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
+        _series_ptr.len = ptr.int32.len
+        
     else:
         raise ValueError('Got unknown Dtype: {}'.format(ptr.tag))
 
-    _data_ptr.data_ptr = ptr
-    series._data_ptr = _data_ptr
+    _series_ptr.series_ptr = ptr
+    series._series_ptr = _series_ptr
     return series
 
-cdef class _DataPtr:
+cdef class _SeriesPtr:
 
     cdef double* vec_ptr_float64
     cdef np.int32_t* vec_ptr_int32
 
     cdef readonly view.array array_view
     cdef readonly int len
-    cdef DataPtr data_ptr
+    cdef SeriesPtr series_ptr
 
     def __dealloc__(self):
         if self.vec_ptr_float64 != NULL or self.vec_ptr_int32 != NULL:
-            free_series(self.data_ptr)
+            free_series(self.series_ptr)
 
 cdef class LumberJackSeries:
 
-    cdef _DataPtr _data_ptr
+    cdef _SeriesPtr _series_ptr
 
     @staticmethod
     def arange(int start, int stop):
         """
         This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
         """
-        cdef DataPtr ptr = arange(start, stop, DType.Int32)
+        cdef SeriesPtr ptr = arange(start, stop, DType.Int32)
         return create_lj_series_from_series_ptr(ptr)
 
     def sum(self):
-        return np.asarray(self._data_ptr.array_view).sum()
+        return np.asarray(self._series_ptr.array_view).sum()
 
 
     def to_cython_array_view(self):
         """
         Provide a cython array view to the data
         """
-        return self._data_ptr.array_view
+        return self._series_ptr.array_view
 
     def to_numpy(self):
         """
         Convert this to numpy array
         """
-        cdef np.ndarray array = np.asarray(self._data_ptr.array_view)
+        cdef np.ndarray array = np.asarray(self._series_ptr.array_view)
         return array
 
     @staticmethod
-    cdef from_lumberjack_ptr(DataPtr series_ptr):
+    cdef from_lumberjack_ptr(SeriesPtr series_ptr):
         """
         Create series from Cython/C struct of LumberJackSeriesPtr which holds meta
         data about the underlying Rust vector
@@ -105,6 +106,6 @@ cdef class LumberJackSeries:
         #return series
 
     def __repr__(self):
-        return 'LumberJackSeries(length: {})'.format(self._data_ptr.len)
+        return 'LumberJackSeries(length: {})'.format(self._series_ptr.len)
 
 

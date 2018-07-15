@@ -8,7 +8,7 @@ pub mod series_funcs;
 
 /// This enum is what Cython will use to read the data created from Rust
 #[repr(C)]
-pub enum DataPtr {
+pub enum SeriesPtr {
     Float64 {
         data_ptr: *mut f64,
         len: usize
@@ -84,14 +84,14 @@ impl Series
     }
 
     /// Return a series from DataPtr
-    pub fn from_data_ptr(ptr: DataPtr) -> Self {
+    pub fn from_series_ptr(ptr: SeriesPtr) -> Self {
         match ptr {
-            DataPtr::Float64 { data_ptr, len } => {
+            SeriesPtr::Float64 { data_ptr, len } => {
                 Self {
                     data: Data::Float64(unsafe { vec_from_raw(data_ptr, len)})
                 }
             },
-            DataPtr::Int32 { data_ptr, len } => {
+            SeriesPtr::Int32 { data_ptr, len } => {
                 Self {
                     data: Data::Int32(unsafe { vec_from_raw(data_ptr, len)})
                 }
@@ -100,7 +100,7 @@ impl Series
     }
 
     /// Build a Series object from the DataPtr enum
-    pub fn into_data_ptr(self) -> DataPtr {
+    pub fn into_series_ptr(self) -> SeriesPtr {
 
         // Create a pointer which has the raw vector pointer and does not let it fall out of
         // scope by forgetting it, as it will be used later, and 'self' will be dropped.
@@ -109,7 +109,7 @@ impl Series
 
             Data::Float64(mut vec) => {
                 vec.shrink_to_fit();
-                let ptr = DataPtr::Float64 {
+                let ptr = SeriesPtr::Float64 {
                     data_ptr: vec.as_mut_ptr(),
                     len: vec.len()
                 };
@@ -119,7 +119,7 @@ impl Series
 
             Data::Int32(mut vec) => {
                 vec.shrink_to_fit();
-                let ptr = DataPtr::Int32 {
+                let ptr = SeriesPtr::Int32 {
                     data_ptr: vec.as_mut_ptr(),
                     len: vec.len()
                 };
@@ -139,14 +139,14 @@ impl Series
 
 /// Create Series from arange and pass back as DataPtr
 #[no_mangle]
-pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
-    Series::from_arange(start, stop, dtype).into_data_ptr()
+pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> SeriesPtr {
+    Series::from_arange(start, stop, dtype).into_series_ptr()
 }
 
 /// Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
 #[no_mangle]
-pub extern "C" fn free_series(data_ptr: DataPtr) {
+pub extern "C" fn free_series(series_ptr: SeriesPtr) {
     // TODO: Replace this with dropping a pointer instead of passing the entire DataPtr struct back
-    let _series = Series::from_data_ptr(data_ptr);
+    let _series = Series::from_series_ptr(series_ptr);
     //println!("Got series letting it fall out of scope!");
 }
