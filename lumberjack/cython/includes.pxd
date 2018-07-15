@@ -28,6 +28,7 @@ cdef extern from "./../rust/liblumberjack.h":
     cdef struct DataPtr:
         Tag tag
         Float64_S float64
+        Int32_S int32
 
 
     DataPtr arange(int start, int stop, DType dtype)

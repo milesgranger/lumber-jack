@@ -148,5 +148,5 @@ pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
 pub extern "C" fn free_series(data_ptr: DataPtr) {
     // TODO: Replace this with dropping a pointer instead of passing the entire DataPtr struct back
     let _series = Series::from_data_ptr(data_ptr);
-    //println!("Got series: {:?}, letting it fall out of scope!", &_series);
+    //println!("Got series letting it fall out of scope!");
 }
