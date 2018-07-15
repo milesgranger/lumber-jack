@@ -140,7 +140,22 @@ impl Series
 /// Create Series from arange and pass back as DataPtr
 #[no_mangle]
 pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> SeriesPtr {
-    Series::from_arange(start, stop, dtype).into_series_ptr()
+    let ptr = match dtype {
+            DType::Float64 => {
+                let mut data = (start..stop).map(|v| v as f64).collect::<Vec<f64>>();
+                let series = SeriesPtr::Float64 { data_ptr: data.as_mut_ptr(), len: data.len() };
+                mem::forget(data);
+                series
+            }
+
+            DType::Int32 => {
+                let mut data = (start..stop).map(|v| v as i32).collect::<Vec<i32>>();
+                let series = SeriesPtr::Int32 { data_ptr: data.as_mut_ptr(), len: data.len() };
+                mem::forget(data);
+                series
+            }
+        };
+    ptr
 }
 
 /// Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
