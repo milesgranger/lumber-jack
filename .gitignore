@@ -75,7 +75,7 @@ Cargo.lock
 
 # Jupyter Notebook
 .ipynb_checkpoints
-
+prof/
 # pyenv
 .python-version
 

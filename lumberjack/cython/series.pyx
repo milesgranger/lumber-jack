@@ -20,8 +20,9 @@ cdef LumberJackSeries create_lj_series_from_series_ptr(DataPtr ptr):
     series.data_ptr = ptr.float64.data_ptr
     series.len = ptr.float64.len
     series.lj_series_ptr = ptr
-    series.array_view = <double[:4]> ptr.float64.data_ptr
+    series.array_view = <double[:series.len]> ptr.float64.data_ptr
     return series
+
 
 cdef class LumberJackSeries:
 
@@ -30,15 +31,16 @@ cdef class LumberJackSeries:
     cdef readonly int len
     cdef readonly view.array array_view
 
-
     @staticmethod
     def arange(int start, int stop):
         """
         This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
         """
         cdef DataPtr ptr = arange(start, stop, DType.Float64)
-        series = create_lj_series_from_series_ptr(ptr)
-        return series
+        return create_lj_series_from_series_ptr(ptr)
+
+    def sum(self):
+        return np.asarray(self.array_view).sum()
 
 
     def to_cython_array_view(self):
@@ -52,7 +54,7 @@ cdef class LumberJackSeries:
         """
         Convert this to numpy array
         """
-        cdef np.ndarray array = np.asarray(<double[:self.len]> self.data_ptr)
+        cdef np.ndarray array = np.asarray(self.array_view)
         return array
 
     @staticmethod
