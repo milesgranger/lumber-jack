@@ -2,7 +2,7 @@ language: rust
 
 rust:
   - nightly
-  - stable
+  #- stable
 
 python:
   - "3.5"
@@ -10,6 +10,18 @@ python:
 
 # TODO: Add matrix to test with multiple python versions for lumber-jack build
 cache: cargo
+
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7
+env:
+  - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
+
+before_install:
+  - eval "${MATRIX_EVAL}"
 
 install:
   - sudo apt-get update
@@ -24,9 +36,10 @@ install:
   - conda create -q -n test-environment python=3.5 -y
   - source activate test-environment
   - pip install -r requirements.txt
+  - gcc -v
 
 script:
+  - cargo build
   - cargo test
-  - cargo build --out-dir ./lumberjack/rust -Z unstable-options --release
   - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lumberjack/rust python setup.py test
 
