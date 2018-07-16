@@ -16,6 +16,10 @@ np.import_array()
 
 
 cdef LumberJackSeries create_lj_series_from_data_ptr(DataPtr ptr):
+    """ 
+    Factory for creating LumberJackSeries from DataPtr
+    **cannot be used as classmethod from within LumberJackSeries**
+    """
     series = LumberJackSeries()
     cdef _DataPtr _data_ptr
     _data_ptr = _DataPtr()
@@ -38,10 +42,14 @@ cdef LumberJackSeries create_lj_series_from_data_ptr(DataPtr ptr):
     return series
 
 cdef class _DataPtr:
-
+    """
+    Holds generic access to various data types from a DataPtr
+    """
+    # Possible array pointers for different dtypes
     cdef double* vec_ptr_float64
     cdef np.int32_t* vec_ptr_int32
 
+    # Static attrs across all dtypes of a DataPtr object.
     cdef readonly view.array array_view
     cdef readonly int len
     cdef DataPtr data_ptr
@@ -51,7 +59,11 @@ cdef class _DataPtr:
             free_data(self.data_ptr)
 
 cdef class LumberJackSeries:
+    """
+    LumberJackSeries
 
+    Some implementations of Numpy / Pandas functionality with bindings to Rust.
+    """
     cdef _DataPtr _data_ptr
 
     @staticmethod

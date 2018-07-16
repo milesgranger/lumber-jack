@@ -1,3 +1,4 @@
 numpy>=1.14.2
 pip-tools>=2.0.1
 semantic-version>=2.6.0
+Cython==0.28.3
