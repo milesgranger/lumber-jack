@@ -3,8 +3,6 @@
 use std::mem;
 use std::iter::FromIterator;
 
-pub mod series_funcs;
-
 
 /// This enum is what Cython will use to read the data created from Rust
 #[repr(C)]
@@ -146,6 +144,6 @@ pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
 #[no_mangle]
 pub extern "C" fn free_data(data_ptr: DataPtr) {
     // TODO: Replace this with dropping a pointer instead of passing the entire DataPtr struct back
-    let data = from_series_ptr(data_ptr);
+    let _data = from_series_ptr(data_ptr);
     //println!("Got data letting it fall out of scope!");
 }

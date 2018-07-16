@@ -11,6 +11,4 @@ pub mod dataframe;
 pub mod prelude;
 pub mod alterations;
 
-
-pub use series::series_funcs::*;
 pub use series::*;
