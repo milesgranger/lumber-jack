@@ -1,3 +1,6 @@
+sudo: required
+dist: trusty
+
 language: rust
 
 rust:
@@ -15,13 +18,10 @@ addons:
   apt:
     sources:
       - ubuntu-toolchain-r-test
+      - llvm-toolchain-precise-3.6
     packages:
+      - gcc-7
       - g++-7
-env:
-  - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-before_install:
-  - eval "${MATRIX_EVAL}"
 
 install:
   - sudo apt-get update
