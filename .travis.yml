@@ -15,16 +15,13 @@ cache: cargo
 compiler:
   - gcc
 
-matrix:
-  include:
-    - os: linux
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-7
-            - gcc-7
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-7
+      - gcc-7
 
 install:
   - sudo apt-get update
@@ -41,8 +38,8 @@ install:
   - pip install -r requirements.txt
 
   # Setup modern gcc & g++ compiler
-  - ln -sf /usr/bin/gcc-7 /usr/local/bin/gcc
-  - ln -sf /usr/bin/g++-7 /usr/local/bin/g++
+  - sudo ln -sf /usr/bin/gcc-7 /usr/local/bin/gcc
+  - sudo ln -sf /usr/bin/g++-7 /usr/local/bin/g++
   - export CC=/usr/bin/gcc-7
   - export CXX=/usr/bin/g++-7
 
