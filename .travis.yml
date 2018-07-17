@@ -1,5 +1,5 @@
-sudo: required
-
+sudo: require
+dist: trusty
 language: rust
 
 rust:
@@ -12,6 +12,9 @@ python:
 
 cache: cargo
 
+compiler:
+  - gcc
+
 matrix:
   include:
     - os: linux
@@ -22,11 +25,6 @@ matrix:
           packages:
             - g++-7
             - gcc-7
-      env:
-         - MATRIX_EVAL="CC=gcc-7 && CXX=g++-7"
-
-before_install:
-  - eval "${MATRIX_EVAL}"
 
 install:
   - sudo apt-get update
@@ -41,7 +39,14 @@ install:
   - conda create -q -n test-environment python=3.5 -y
   - source activate test-environment
   - pip install -r requirements.txt
-  - gcc -v
+
+  # Setup modern gcc & g++ compiler
+  - ln -sf /usr/bin/gcc-7 /usr/local/bin/gcc
+  - ln -sf /usr/bin/g++-7 /usr/local/bin/g++
+  - export CC=/usr/bin/gcc-7
+  - export CXX=/usr/bin/g++-7
+
+  - gcc -v && g++ -v
 
 script:
   - cargo build
