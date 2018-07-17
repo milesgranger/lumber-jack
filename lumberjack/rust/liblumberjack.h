@@ -1,4 +1,4 @@
-/* WARNING: This file created automatically by cbindgen. Do not modify manually. */
+/* Binding from Rust to Cython  */
 
 #include <cstdint>
 #include <cstdlib>
@@ -36,7 +36,7 @@ struct DataPtr {
 
 extern "C" {
 
-/* WARNING: This file created automatically by cbindgen. Do not modify manually. */
+/* Binding from Rust to Cython  */
 
 // Create Series from arange and pass back as DataPtr
 DataPtr arange(int32_t start, int32_t stop, DType dtype);
@@ -48,4 +48,4 @@ DataPtr sum(DataPtr data_ptr);
 
 } // extern "C"
 
-/* WARNING: This file created automatically by cbindgen. Do not modify manually. */
+/* Binding from Rust to Cython  */

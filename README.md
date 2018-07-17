@@ -30,6 +30,7 @@ project while maintaining some of the most valuable functionality of pandas.
 ### Install
 
 `cargo` & `rustup` should be installed along with nightly version of Rust  
+`gcc >= 7`
 
 **NOTE** Only Python 3.5 is being tested against on Unix platforms
 
@@ -49,15 +50,14 @@ pip uninstall lumber-jack
 ```
 ---
 
-### Working Pandas like operations:
+### Working Pandas & Numpy like operations:
 
 ##### There isn't much, but check back soon! ;)
 ```python
 from lumberjack.cython.series import LumberJackSeries
 
 series = LumberJackSeries.arange(0, 10000)  # ~8x faster than numpy.arange
-series.sum()                                # ~4x faster than array.sum()
-
+series.sum()                                # ~40x faster than pandas.Series.sum()
 ```
 
 ### Working Alteration Tools:

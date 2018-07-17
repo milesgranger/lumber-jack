@@ -1,4 +1,4 @@
-autogen_warning = "/* WARNING: This file created automatically by cbindgen. Do not modify manually. */"
+autogen_warning = "/* Binding from Rust to Cython  */"
 language = "C++"
 
 [export]

@@ -3,6 +3,8 @@
 import unittest
 import logging
 import timeit
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +32,12 @@ class RustSeriesTestCase(unittest.TestCase):
             number=10000,
             setup='import numpy as np; array = np.arange(0, 10000)'
         )
-        logger.debug('.sum() speed: Avg LumberJack: {:.4f}s -- Avg numpy: {:.4f}s'.format(lj_time, np_time))
+        pd_time = timeit.timeit(
+            stmt='series.sum()',
+            number=10000,
+            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))'
+        )
+        logger.debug('.sum() speed: Avg LumberJack: {:.4f}s -- Numpy: {:.4f}s -- Pandas: {:.4f}'.format(lj_time, np_time, pd_time))
         self.assertLessEqual(lj_time, np_time, msg='Expected LumberJack .sum() to be faster but it was not!')
 
     def test_arange(self):
