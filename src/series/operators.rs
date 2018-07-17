@@ -6,6 +6,10 @@ This module consists of vector operations; sum, multiply, divide, etc.
 
 use std::iter::Sum;
 
+pub trait LumberJackData {}
+impl LumberJackData for f64 {}
+impl LumberJackData for i32 {}
+
 /// Sum a vector which consists of values allowed to be summed and return a Vec of size one
 /// which plays well with DataPtr
 pub fn sum_vec<'a, T>(vec: &'a Vec<T>) -> Vec<T>

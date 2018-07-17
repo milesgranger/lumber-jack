@@ -11,7 +11,45 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
-    def test_simple_sum(self):
+    def test_cumsum(self):
+        """
+        Test cumulative sum of series
+        """
+        from lumberjack.cython.series import LumberJackSeries
+
+        series = LumberJackSeries.arange(0, 4)
+        _pd_series = pd.Series(np.arange(0, 4))
+        cumsum = series.cumsum()
+        logger.debug('Got cumsum of {}'.format(cumsum))
+
+        # Ensure they sum to the same
+        lj_cumsum_sum = series.cumsum().sum()
+        pd_cumsum_sum = _pd_series.cumsum().sum()
+        logger.debug(
+            'Cumulative sum over arange(0, 4) -> LumberJack: {} -- Pandas: {}'.format(lj_cumsum_sum, pd_cumsum_sum)
+        )
+        self.assertEqual(lj_cumsum_sum, pd_cumsum_sum,
+                         msg='LumberJack and Pandas .cumsum().sum() does not match! -- LumberJack: {}, Pandas: {}'
+                             .format(lj_cumsum_sum, pd_cumsum_sum)
+                         )
+
+        # Speed test
+        lj_time = timeit.timeit(
+            stmt='series.cumsum()',
+            number=10000,
+            setup='from lumberjack.cython.series import LumberJackSeries; series = LumberJackSeries.arange(0, 10000)'
+        )
+        pd_time = timeit.timeit(
+            stmt='series.cumsum()',
+            number=10000,
+            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))'
+        )
+        logger.debug(
+            '.cumsum() speed: Avg LumberJack: {:.4f}s -- Pandas: {:.4f}'.format(lj_time, pd_time))
+        self.assertLessEqual(lj_time, pd_time)
+
+
+    def test_sum(self):
         """
         Test the ability to sum a series
         """

@@ -58,6 +58,7 @@ from lumberjack.cython.series import LumberJackSeries
 
 series = LumberJackSeries.arange(0, 10000)  # ~8x faster than numpy.arange
 series.sum()                                # ~40x faster than pandas.Series.sum()
+series.cumsum()                             # ~4x faster than pandas.Series.cumsum()
 ```
 
 ### Working Alteration Tools:

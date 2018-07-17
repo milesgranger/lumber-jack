@@ -60,7 +60,7 @@ pub unsafe fn vec_from_raw<T>(ptr: *mut T, n_elements: usize) -> Vec<T> {
 
 
 
-/// Return a series from DataPtr
+/// Return a Data enum from DataPtr
 pub fn from_data_ptr(ptr: DataPtr) -> Data {
     match ptr {
         DataPtr::Float64 { data_ptr, len } => {
@@ -72,12 +72,11 @@ pub fn from_data_ptr(ptr: DataPtr) -> Data {
     }
 }
 
-/// Build a Series object from the DataPtr enum
+/// Build a DataPtr from the Data enum
 pub fn into_data_ptr(data: Data) -> DataPtr {
 
     // Create a pointer which has the raw vector pointer and does not let it fall out of
     // scope by forgetting it, as it will be used later, and 'self' will be dropped.
-    // TODO: Consider boxing self and returning that along with the DataPtr instead
     let data_ptr = match data {
 
         Data::Float64(mut vec) => {

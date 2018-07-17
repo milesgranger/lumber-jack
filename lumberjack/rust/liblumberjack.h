@@ -41,6 +41,8 @@ extern "C" {
 // Create Series from arange and pass back as DataPtr
 DataPtr arange(int32_t start, int32_t stop, DType dtype);
 
+DataPtr cumsum(DataPtr data_ptr);
+
 // Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
 void free_data(DataPtr data_ptr);
 

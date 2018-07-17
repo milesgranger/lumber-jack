@@ -46,7 +46,6 @@ install:
   - gcc -v && g++ -v
 
 script:
-  - cargo build
   - cargo test
   - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lumberjack/rust python setup.py test
 

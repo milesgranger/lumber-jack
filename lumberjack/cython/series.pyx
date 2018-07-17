@@ -8,7 +8,7 @@ cimport numpy as np
 
 from cython cimport view
 from .includes cimport free_data, DataPtr, DType, Tag
-from .operators cimport arange, sum as _sum
+from .operators cimport arange, sum as _sum, cumsum
 
 logger = logging.getLogger(__name__)
 
@@ -79,6 +79,9 @@ cdef class LumberJackSeries:
         cdef LumberJackSeries series = create_lj_series_from_data_ptr(ptr)
         return series._data_ptr.array_view[0]
 
+    def cumsum(self):
+        cdef DataPtr ptr = cumsum(self._data_ptr.data_ptr)
+        return create_lj_series_from_data_ptr(ptr)
 
     def to_cython_array_view(self):
         """
