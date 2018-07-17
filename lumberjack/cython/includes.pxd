@@ -30,8 +30,5 @@ cdef extern from "./../rust/liblumberjack.h":
         Float64_S float64
         Int32_S int32
 
-
-    DataPtr arange(int start, int stop, DType dtype)
-
     # Allow rust to remove a vector that it created and passed to Python
     void free_data(DataPtr ptr);

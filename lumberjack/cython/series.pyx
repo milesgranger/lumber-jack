@@ -2,13 +2,13 @@
 # distutils: language = c++
 
 import logging
-
 import numpy as np
+
 cimport numpy as np
 
 from cython cimport view
-from .includes cimport free_data, arange, DataPtr, DType, Tag
-
+from .includes cimport free_data, DataPtr, DType, Tag
+from .operators cimport arange, sum as _sum
 
 logger = logging.getLogger(__name__)
 
@@ -75,7 +75,9 @@ cdef class LumberJackSeries:
         return create_lj_series_from_data_ptr(ptr)
 
     def sum(self):
-        return np.asarray(self._data_ptr.array_view).sum()
+        cdef DataPtr ptr = _sum(self._data_ptr.data_ptr)
+        cdef LumberJackSeries series = create_lj_series_from_data_ptr(ptr)
+        return series._data_ptr.array_view[0]
 
 
     def to_cython_array_view(self):

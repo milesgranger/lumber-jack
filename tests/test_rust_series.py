@@ -1,10 +1,7 @@
 # -*- coding: utf-8 -*-
 
-
 import unittest
 import logging
-import numpy as np
-import pandas as pd
 import timeit
 
 logger = logging.getLogger(__name__)
@@ -12,13 +9,31 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
-    def test_simple_arange(self):
+    def test_simple_sum(self):
+        """
+        Test the ability to sum a series
+        """
         from lumberjack.cython.series import LumberJackSeries
-
         series = LumberJackSeries.arange(0, 4)
-        logger.debug('Series: {}'.format(series))
+        total = series.sum()
+        logger.debug('Sum of arange(0, 4) is: {}'.format(total))
+        self.assertEqual(total, 6)
 
-    def test_from_arange(self):
+        # Test speed
+        lj_time = timeit.timeit(
+            stmt='series.sum()',
+            number=10000,
+            setup='from lumberjack.cython.series import LumberJackSeries; series = LumberJackSeries.arange(0, 10000)'
+        )
+        np_time = timeit.timeit(
+            stmt='array.sum()',
+            number=10000,
+            setup='import numpy as np; array = np.arange(0, 10000)'
+        )
+        logger.debug('.sum() speed: Avg LumberJack: {:.4f}s -- Avg numpy: {:.4f}s'.format(lj_time, np_time))
+        self.assertLessEqual(lj_time, np_time, msg='Expected LumberJack .sum() to be faster but it was not!')
+
+    def test_arange(self):
         """
         Check creating an array from inside Rust and passing it to Python
         """
@@ -29,13 +44,16 @@ class RustSeriesTestCase(unittest.TestCase):
         self.assertEqual(vec.sum(), 6)
 
         # If we re-implement numpy function, they should be faster
-        lj_time = timeit.timeit('LumberJackSeries.arange(0, 5000)', number=10000, setup='from lumberjack.cython.series import LumberJackSeries')
-        np_time = timeit.timeit('np.arange(0, 5000)', number=10000, setup='import numpy as np')
-        logger.debug('Avg time for LumberJack arange: {:4f}'.format(lj_time))
-        logger.debug('Avg time for numpy arange: {:4f}'.format(np_time))
-        #self.assertLess(lj_time, np_time,
-        #                'Expected LumberJack ({:.4f}) to be faster than numpy ({:.4f}), but it was not!'
-        #                .format(lj_time, np_time))
+        lj_time = timeit.timeit('LumberJackSeries.arange(0, 10000)',
+                                number=10000,
+                                setup='from lumberjack.cython.series import LumberJackSeries')
+        np_time = timeit.timeit('np.arange(0, 10000)',
+                                number=10000,
+                                setup='import numpy as np')
+        logger.debug('.arange(0, 10000) speed: Avg LumberJack: {:4f}s -- Avg numpy: {:.4f}s'.format(lj_time, np_time))
+        self.assertLess(lj_time, np_time,
+                        'Expected LumberJack ({:.4f}) to be faster than numpy ({:.4f}), but it was not!'
+                        .format(lj_time, np_time))
     '''
     def test_from_numpy(self):
         """

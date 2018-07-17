@@ -55,7 +55,9 @@ pip uninstall lumber-jack
 ```python
 from lumberjack.cython.series import LumberJackSeries
 
-series = LumberJackSeries.arange(0, 10000)  # ~2x faster than numpy.arange
+series = LumberJackSeries.arange(0, 10000)  # ~8x faster than numpy.arange
+series.sum()                                # ~4x faster than array.sum()
+
 ```
 
 ### Working Alteration Tools:

@@ -1,7 +1,7 @@
 #![allow(dead_code)]
 
 use std::mem;
-use std::iter::FromIterator;
+use std::iter::{FromIterator, Sum};
 
 
 /// This enum is what Cython will use to read the data created from Rust
@@ -16,6 +16,11 @@ pub enum DataPtr {
         len: usize
     }
 }
+
+pub trait LumberJackData {}
+
+impl LumberJackData for f64 {}
+impl LumberJackData for i32 {}
 
 
 /// Container for various supported data types
@@ -137,6 +142,42 @@ pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
                 series
             }
         };
+    ptr
+}
+
+
+/// Sum a vector which consists of values allowed to be summed and return a Vec of size one
+/// which plays well with DataPtr
+fn _sum<'a, T>(vec: &'a Vec<T>) -> Vec<T>
+    where T: Sum<&'a T>
+{
+    let mut result = Vec::with_capacity(1_usize);
+    result.push(vec.iter().sum());
+    result
+}
+
+
+#[no_mangle]
+pub extern "C" fn sum(data_ptr: DataPtr) -> DataPtr {
+
+    let ptr = match data_ptr {
+        DataPtr::Float64 { data_ptr, len } => {
+            let vec = unsafe { vec_from_raw(data_ptr, len) };
+            let mut result = _sum(&vec);
+            let ptr = DataPtr::Float64 { data_ptr: result.as_mut_ptr(), len: result.len()};
+            mem::forget(vec);
+            mem::forget(result);
+            ptr
+        },
+        DataPtr::Int32 { data_ptr, len } => {
+            let vec = unsafe { vec_from_raw(data_ptr, len) };
+            let mut result = _sum(&vec);
+            let ptr = DataPtr::Int32 { data_ptr: result.as_mut_ptr(), len: result.len()};
+            mem::forget(vec);
+            mem::forget(result);
+            ptr
+        }
+    };
     ptr
 }
 
