@@ -82,6 +82,25 @@ pub extern "C" fn cumsum(data_ptr: DataPtr) -> DataPtr {
     }
 }
 
+
+#[no_mangle]
+pub extern "C" fn mean(data_ptr: DataPtr) -> f64 {
+    let data = from_data_ptr(data_ptr);
+
+    match data {
+        Data::Float64(vec) => {
+            let val = vec.iter().sum::<f64>() as f64 / vec.len() as f64;
+            mem::forget(vec);
+            val
+        },
+        Data::Int32(vec) => {
+            let val = vec.iter().sum::<i32>() as f64 / vec.len() as f64;
+            mem::forget(vec);
+            val
+        }
+    }
+}
+
 /// Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
 #[no_mangle]
 pub extern "C" fn free_data(data_ptr: DataPtr) {

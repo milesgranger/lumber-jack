@@ -11,6 +11,33 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
+    def test_mean(self):
+        """
+        Test average/mean of series
+        """
+        from lumberjack.cython.series import LumberJackSeries
+
+        lj_series = LumberJackSeries.arange(0, 10000)
+        pd_series = pd.Series(np.arange(0, 10000))
+        avg = lj_series.mean()
+        logger.debug('Mean of arange(0, 10000) -> {:.4f}'.format(avg))
+        self.assertEqual(lj_series.mean(), pd_series.mean())
+
+        # Speed test
+        lj_time = timeit.timeit(
+            stmt='series.mean()',
+            number=10000,
+            setup='from lumberjack.cython.series import LumberJackSeries; series = LumberJackSeries.arange(0, 10000)'
+        )
+        pd_time = timeit.timeit(
+            stmt='series.mean()',
+            number=10000,
+            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))'
+        )
+        logger.debug(
+            '.mean() speed: Avg LumberJack: {:.4f}s -- Pandas: {:.4f}'.format(lj_time, pd_time))
+        self.assertLessEqual(lj_time, pd_time)
+
     def test_cumsum(self):
         """
         Test cumulative sum of series

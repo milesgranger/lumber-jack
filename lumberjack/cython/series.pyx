@@ -8,7 +8,7 @@ cimport numpy as np
 
 from cython cimport view
 from .includes cimport free_data, DataPtr, DType, Tag
-from .operators cimport arange, sum as _sum, cumsum
+from .operators cimport arange, sum as _sum, cumsum, mean
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +55,8 @@ cdef class _DataPtr:
     cdef DataPtr data_ptr
 
     def __dealloc__(self):
-        if self.vec_ptr_float64 != NULL or self.vec_ptr_int32 != NULL:
+        if self.vec_ptr_float64 != NULL or \
+                self.vec_ptr_int32 != NULL:
             free_data(self.data_ptr)
 
 cdef class LumberJackSeries:
@@ -73,6 +74,11 @@ cdef class LumberJackSeries:
         """
         cdef DataPtr ptr = arange(start, stop, DType.Int32)
         return create_lj_series_from_data_ptr(ptr)
+
+    def mean(self):
+        cdef double avg
+        avg = mean(self._data_ptr.data_ptr)
+        return avg
 
     def sum(self):
         cdef DataPtr ptr = _sum(self._data_ptr.data_ptr)
@@ -96,13 +102,11 @@ cdef class LumberJackSeries:
         cdef np.ndarray array = np.asarray(self._data_ptr.array_view)
         return array
 
-    @staticmethod
-    cdef from_lumberjack_ptr(DataPtr data_ptr):
-        """
-        Create series from Cython/C struct of LumberJackSeriesPtr which holds meta
-        data about the underlying Rust vector
-        """
-        return 'Done!'
+    def __len__(self):
+        return self._data_ptr.len
+
+    def __iter__(self):
+        return (self._data_ptr.array_view[i] for i in range(self._data_ptr.len))
 
     @staticmethod
     def from_numpy(np.ndarray array):
