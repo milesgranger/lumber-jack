@@ -3,6 +3,7 @@
 
 import logging
 import numpy as np
+import pandas as pd
 
 cimport numpy as np
 
@@ -125,6 +126,12 @@ cdef class LumberJackSeries:
         #series_ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
         #series = create_lumberjack_series_from_ptr(series_ptr)
         #return series
+
+    def __getattr__(self, item):
+        def method(*args, **kwargs):
+            series = pd.Series(self.to_numpy())  # TODO: pass more features to constructor as we add them.
+            return getattr(series, item)(*args, **kwargs)
+        return method
 
     def __repr__(self):
         return 'LumberJackSeries(length: {})'.format(self._data_ptr.len)

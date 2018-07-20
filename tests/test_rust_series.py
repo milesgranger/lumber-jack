@@ -5,6 +5,7 @@ import logging
 import timeit
 import numpy as np
 import pandas as pd
+import lumberjack as lj
 
 logger = logging.getLogger(__name__)
 
@@ -15,9 +16,7 @@ class RustSeriesTestCase(unittest.TestCase):
         """
         Test average/mean of series
         """
-        from lumberjack.cython.series import LumberJackSeries
-
-        lj_series = LumberJackSeries.arange(0, 10000)
+        lj_series = lj.Series.arange(0, 10000)
         pd_series = pd.Series(np.arange(0, 10000))
         avg = lj_series.mean()
         logger.debug('Mean of arange(0, 10000) -> {:.4f}'.format(avg))
@@ -42,9 +41,7 @@ class RustSeriesTestCase(unittest.TestCase):
         """
         Test cumulative sum of series
         """
-        from lumberjack.cython.series import LumberJackSeries
-
-        series = LumberJackSeries.arange(0, 4)
+        series = lj.Series.arange(0, 4)
         _pd_series = pd.Series(np.arange(0, 4))
         cumsum = series.cumsum()
         logger.debug('Got cumsum of {}'.format(cumsum))
@@ -80,8 +77,7 @@ class RustSeriesTestCase(unittest.TestCase):
         """
         Test the ability to sum a series
         """
-        from lumberjack.cython.series import LumberJackSeries
-        series = LumberJackSeries.arange(0, 4)
+        series = lj.Series.arange(0, 4)
         total = series.sum()
         logger.debug('Sum of arange(0, 4) is: {}'.format(total))
         self.assertEqual(total, 6)
@@ -109,8 +105,7 @@ class RustSeriesTestCase(unittest.TestCase):
         """
         Check creating an array from inside Rust and passing it to Python
         """
-        from lumberjack.cython.series import LumberJackSeries
-        series = LumberJackSeries.arange(0, 4)
+        series = lj.Series.arange(0, 4)
         vec = series.to_numpy()
         logger.debug('Vector type: {}, and it looks like: {}, sum is: {}'.format(type(vec), vec, vec.sum()))
         self.assertEqual(vec.sum(), 6)
@@ -126,6 +121,23 @@ class RustSeriesTestCase(unittest.TestCase):
         self.assertLess(lj_time, np_time,
                         'Expected LumberJack ({:.4f}) to be faster than numpy ({:.4f}), but it was not!'
                         .format(lj_time, np_time))
+
+    def test_describe(self):
+        """
+        Test that a call to a method not implemented in LumberJack will forward that call to Pandas
+        in this case '.describe()'
+
+        Additionally, ensure a call to a method with neither has, raises the same error as it would otherwise.
+        """
+        series = lj.Series.arange(0, 10)
+        descript = series.describe()
+        self.assertIsInstance(
+            obj=descript,
+            cls=pd.Series,
+            msg='Expected call to ".describe()" to produce a pandas Series, it produced a {} instead!'.format(descript)
+        )
+        with self.assertRaises(AttributeError):
+            series.THIS_METHOD_DOES_NOT_EXIST_IN_EITHER_PANDAS_OR_LUMBERJACK()
     '''
     def test_from_numpy(self):
         """

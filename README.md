@@ -1,6 +1,6 @@
 # lumber-jack
 
-![Build Status](https://travis-ci.org/milesgranger/lumber-jack.svg?branch=master)
+[![Build Status](https://travis-ci.org/milesgranger/lumber-jack.svg?branch=master)](https://travis-ci.org/milesgranger/lumber-jack)
 
 ---
 
@@ -54,12 +54,13 @@ pip uninstall lumber-jack
 
 ##### There isn't much, but check back soon! ;)
 ```python
-from lumberjack.cython.series import LumberJackSeries
+import lumberjack as lj
 
-series = LumberJackSeries.arange(0, 10000)  # ~8x faster than numpy.arange
-series.sum()                                # ~40x faster than pandas.Series.sum()
-series.cumsum()                             # ~4x faster than pandas.Series.cumsum()
-series.mean()                               # ~100x faster than pandas.Series.mean()
+# lj.Series is a drop-in replacement for pandas.Series, overriding these methods:
+series = lj.Series.arange(0, 10000)  # ~8x faster than numpy.arange
+series.sum()                         # ~40x faster than pandas.Series.sum()
+series.cumsum()                      # ~4x faster than pandas.Series.cumsum()
+series.mean()                        # ~100x faster than pandas.Series.mean()
 
 ```
 
