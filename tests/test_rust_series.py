@@ -10,6 +10,28 @@ import lumberjack as lj
 logger = logging.getLogger(__name__)
 
 
+def run_series_method_tests(method: str, alternate_numpy_stmt: str=None):
+    """
+    Run the timing tests for LumberJack, Numpy and Pandas
+    calling the same method on an arange of the series/array with an optional alternative
+    to numpy (ie. np.abs(array), array.abs() doesn't exist)
+    """
+    # Test speed
+    lj_time = timeit.timeit(stmt='series.{}()'.format(method),
+                            number=10000,
+                            setup='import lumberjack as lj; series = lj.Series.arange(0, 10000)')
+    pd_time = timeit.timeit(stmt='series.{}()'.format(method),
+                            number=10000,
+                            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))')
+    np_time = timeit.timeit(stmt='array.{}()'.format(method) if alternate_numpy_stmt is None else alternate_numpy_stmt,
+                            number=10000,
+                            setup='import numpy as np; array = np.arange(0, 10000)')
+
+    logger.debug('.{}() speed: Avg LumberJack: {:.4f}s -- Pandas: {:.4f} -- Numpy: {:.4f}'
+                 .format(method, lj_time, pd_time, np_time))
+    return lj_time, pd_time, np_time
+
+
 class RustSeriesTestCase(unittest.TestCase):
 
     def test_mean(self):
@@ -23,18 +45,7 @@ class RustSeriesTestCase(unittest.TestCase):
         self.assertEqual(lj_series.mean(), pd_series.mean())
 
         # Speed test
-        lj_time = timeit.timeit(
-            stmt='series.mean()',
-            number=10000,
-            setup='from lumberjack.cython.series import LumberJackSeries; series = LumberJackSeries.arange(0, 10000)'
-        )
-        pd_time = timeit.timeit(
-            stmt='series.mean()',
-            number=10000,
-            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))'
-        )
-        logger.debug(
-            '.mean() speed: Avg LumberJack: {:.4f}s -- Pandas: {:.4f}'.format(lj_time, pd_time))
+        lj_time, pd_time, np_time = run_series_method_tests('mean')
         self.assertLessEqual(lj_time, pd_time)
 
     def test_cumsum(self):
@@ -49,27 +60,12 @@ class RustSeriesTestCase(unittest.TestCase):
         # Ensure they sum to the same
         lj_cumsum_sum = series.cumsum().sum()
         pd_cumsum_sum = _pd_series.cumsum().sum()
-        logger.debug(
-            'Cumulative sum over arange(0, 4) -> LumberJack: {} -- Pandas: {}'.format(lj_cumsum_sum, pd_cumsum_sum)
-        )
         self.assertEqual(lj_cumsum_sum, pd_cumsum_sum,
                          msg='LumberJack and Pandas .cumsum().sum() does not match! -- LumberJack: {}, Pandas: {}'
                              .format(lj_cumsum_sum, pd_cumsum_sum)
                          )
-
         # Speed test
-        lj_time = timeit.timeit(
-            stmt='series.cumsum()',
-            number=10000,
-            setup='from lumberjack.cython.series import LumberJackSeries; series = LumberJackSeries.arange(0, 10000)'
-        )
-        pd_time = timeit.timeit(
-            stmt='series.cumsum()',
-            number=10000,
-            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))'
-        )
-        logger.debug(
-            '.cumsum() speed: Avg LumberJack: {:.4f}s -- Pandas: {:.4f}'.format(lj_time, pd_time))
+        lj_time, pd_time, np_time = run_series_method_tests('cumsum')
         self.assertLessEqual(lj_time, pd_time)
 
 
@@ -82,23 +78,8 @@ class RustSeriesTestCase(unittest.TestCase):
         logger.debug('Sum of arange(0, 4) is: {}'.format(total))
         self.assertEqual(total, 6)
 
-        # Test speed
-        lj_time = timeit.timeit(
-            stmt='series.sum()',
-            number=10000,
-            setup='from lumberjack.cython.series import LumberJackSeries; series = LumberJackSeries.arange(0, 10000)'
-        )
-        np_time = timeit.timeit(
-            stmt='array.sum()',
-            number=10000,
-            setup='import numpy as np; array = np.arange(0, 10000)'
-        )
-        pd_time = timeit.timeit(
-            stmt='series.sum()',
-            number=10000,
-            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))'
-        )
-        logger.debug('.sum() speed: Avg LumberJack: {:.4f}s -- Numpy: {:.4f}s -- Pandas: {:.4f}'.format(lj_time, np_time, pd_time))
+        # Speed test
+        lj_time, pd_time, np_time = run_series_method_tests('sum')
         self.assertLessEqual(lj_time, np_time, msg='Expected LumberJack .sum() to be faster but it was not!')
 
     def test_arange(self):
@@ -149,5 +130,3 @@ class RustSeriesTestCase(unittest.TestCase):
         series = LumberJackSeries.from_numpy(array)
         logger.debug('Made series from numpy: {}'.format(series))
     '''
-
-

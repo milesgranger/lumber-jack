@@ -57,10 +57,10 @@ pip uninstall lumber-jack
 import lumberjack as lj
 
 # lj.Series is a drop-in replacement for pandas.Series, overriding these methods:
-series = lj.Series.arange(0, 10000)  # ~8x faster than numpy.arange
-series.sum()                         # ~40x faster than pandas.Series.sum()
-series.cumsum()                      # ~4x faster than pandas.Series.cumsum()
-series.mean()                        # ~100x faster than pandas.Series.mean()
+series = lj.Series.arange(0, 10000)  # ~8x  faster than numpy
+series.sum()                         # ~40x faster than pandas  & ~3x faster than numpy
+series.cumsum()                      # ~4x  faster than pandas  & ~0x faster than numpy
+series.mean()                        # ~98x faster than pandas  & ~20x faster than numpy
 
 ```
 
