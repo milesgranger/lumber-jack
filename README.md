@@ -58,9 +58,11 @@ import lumberjack as lj
 
 # lj.Series is a drop-in replacement for pandas.Series, overriding these methods:
 series = lj.Series.arange(0, 10000)  # ~8x  faster than numpy
-series.sum()                         # ~40x faster than pandas  & ~3x faster than numpy
-series.cumsum()                      # ~4x  faster than pandas  & ~0x faster than numpy
-series.mean()                        # ~98x faster than pandas  & ~20x faster than numpy
+series.sum()                         # ~40x faster than pandas & ~3x  faster than numpy
+series.cumsum()                      # ~4x  faster than pandas & ~0x  faster than numpy
+series.mean()                        # ~98x faster than pandas & ~20x faster than numpy
+series * 2                           # ~8x  faster than pandas & ~0x  faster than numpy
+series *= 2                          # ~10x faster than pandas & ~0x  faster than numpy
 
 ```
 

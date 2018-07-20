@@ -6,7 +6,7 @@ This module consists of vector operations; sum, multiply, divide, etc.
 
 use std::iter::Sum;
 use std::mem;
-
+use ndarray::{Array, ArrayViewMut};
 use containers::{DataPtr, Data, into_data_ptr, from_data_ptr};
 
 pub trait LumberJackData {}
@@ -21,6 +21,36 @@ pub fn sum_vec<'a, T>(vec: &'a Vec<T>) -> Vec<T>
     let mut result = Vec::with_capacity(1_usize);
     result.push(vec.iter().sum());
     result
+}
+
+#[no_mangle]
+pub extern "C" fn multiply_by_scalar(data_ptr: DataPtr, scalar: f64, inplace: bool) -> DataPtr {
+    let ptr = match from_data_ptr(data_ptr) {
+
+        Data::Int32(mut vec) => {
+            let data = if inplace {
+                vec.iter_mut().map(|v| *v as f64 * scalar).collect()
+            } else {
+                vec.clone().iter().map(|v| *v as f64 * scalar).collect()
+            };
+            let ptr = into_data_ptr(Data::Float64(data));
+            mem::forget(vec);
+            ptr
+        },
+
+        Data::Float64(mut vec) => {
+            let data = if inplace {
+                vec.iter_mut().map(|v| *v * scalar).collect()
+            } else {
+                vec.clone().iter().map(|v| *v * scalar).collect()
+            };
+            let ptr = into_data_ptr(Data::Float64(data));
+            mem::forget(vec);
+            ptr
+        }
+    };
+
+    ptr
 }
 
 #[no_mangle]

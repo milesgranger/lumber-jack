@@ -48,6 +48,8 @@ void free_data(DataPtr data_ptr);
 
 double mean(DataPtr data_ptr);
 
+DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
+
 DataPtr sum(DataPtr data_ptr);
 
 } // extern "C"

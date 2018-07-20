@@ -9,7 +9,7 @@ cimport numpy as np
 
 from cython cimport view
 from .includes cimport free_data, DataPtr, DType, Tag
-from .operators cimport arange, sum as _sum, cumsum, mean
+from .operators cimport arange, sum as _sum, cumsum, mean, multiply_by_scalar
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +67,21 @@ cdef class LumberJackSeries:
     Some implementations of Numpy / Pandas functionality with bindings to Rust.
     """
     cdef _DataPtr _data_ptr
+
+    def _mul__(self, double scalar):
+        cdef DataPtr ptr = multiply_by_scalar(self._data_ptr.data_ptr, float(scalar), False)
+        return create_lj_series_from_data_ptr(ptr)
+
+    def __mul__(self, other):
+        return self._mul__(other)
+
+    def _imul__(self, double scalar):
+        cdef DataPtr ptr = multiply_by_scalar(self._data_ptr.data_ptr, float(scalar), True)
+        self = create_lj_series_from_data_ptr(ptr)
+        return self
+
+    def __imul__(self, other):
+        return self._imul__(other)
 
     @staticmethod
     def arange(int start, int stop):
