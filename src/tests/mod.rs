@@ -1,4 +1,3 @@
-use std::iter::Sum;
 use self::super::prelude::*;
 use self::super::{series, containers};
 
@@ -35,4 +34,37 @@ fn test_cumsum() {
         };
     println!("Got vec: {:?}", &vec);
     assert_eq!(vec.last().expect("Vector was empty!"), &10_i32);
+}
+
+#[test]
+fn test_sum() {
+    let vec = vec![1, 2, 3, 4];
+    let ptr = containers::into_data_ptr(containers::Data::Int32(vec));
+    let result = series::sum(ptr);
+    if let containers::DataPtr::Int32 { data_ptr, len } = result {
+        let v = unsafe { Vec::from_raw_parts(data_ptr, len, len)};
+        assert_eq!(v.last().expect("Vector was empty!"), &10_i32)
+    } else {
+        panic!("Expected to get a DataPtr::Int32 but we did not!");
+    };
+
+}
+
+#[test]
+fn test_mean() {
+    let vec = vec![1, 1, 1, 1, 1];
+    let ptr = containers::into_data_ptr(containers::Data::Int32(vec));
+    let result = series::mean(ptr);
+    assert_eq!(result, 1_f64);
+}
+
+#[test]
+fn test_arange() {
+    let v = series::arange(0, 5, containers::DType::Int32);
+    let data = containers::from_data_ptr(v);
+    if let containers::Data::Int32(vec) = data {
+        assert_eq!(vec.iter().sum::<i32>(), 10);
+    } else {
+        panic!("Expected Data::Int32 but got {:?} instead!", data);
+    }
 }

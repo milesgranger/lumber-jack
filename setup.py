@@ -1,9 +1,12 @@
+import re
 from subprocess import Popen
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 from Cython.Build import cythonize
 import numpy as np
-from lumberjack._version import __version__
+
+with open('lumberjack/_version.py', 'r') as f:
+    __version__ = re.search(r"__version__?\s=?\s'([^']+)", f.read()).groups()[0]
 
 setup_requires = ['pytest-runner', "Cython"]
 install_requires = ['numpy']
