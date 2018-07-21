@@ -1,6 +1,23 @@
 use self::super::prelude::*;
 use self::super::{series, containers};
 
+#[macro_use]
+use macros;
+
+#[test]
+fn test_scalar_multiply() {
+    // Test multiplication by creating a copy
+    let data = vec![1, 2, 3];
+    let new_data = multiply_vec_by_scalar!(!inplace &data, 2);
+    assert_eq!(&vec![1, 2, 3], &data);
+    assert_eq!(&vec![2, 4, 6], &new_data);
+    println!("Original: {:?}, New: {:?}", data, new_data);
+
+    // Test multiplication by inplace
+    let mut data = vec![1, 2, 3];
+    multiply_vec_by_scalar!(inplace &mut data, 2);
+    assert_eq!(vec![2, 4, 6], data)
+}
 
 #[test]
 fn test_alterations_one_hot() {
