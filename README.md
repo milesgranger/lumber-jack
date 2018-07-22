@@ -63,6 +63,8 @@ series.cumsum()                      # ~4x  faster than pandas & ~0x  faster tha
 series.mean()                        # ~98x faster than pandas & ~20x faster than numpy
 series * 2                           # ~8x  faster than pandas & ~0x  faster than numpy
 series *= 2                          # ~10x faster than pandas & ~0x  faster than numpy
+series + 2                           # ....
+series += 2                          # ....
 
 ```
 

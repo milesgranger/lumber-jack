@@ -37,6 +37,20 @@ pub extern "C" fn multiply_by_scalar(data_ptr: DataPtr, scalar: f64, inplace: bo
 }
 
 #[no_mangle]
+pub extern "C" fn add_by_scalar(data_ptr: DataPtr, scalar: f64, inplace: bool) -> DataPtr {
+
+    let mut data = from_data_ptr(data_ptr);
+    let result = if inplace {
+        operate_on_vec_by_scalar!(inplace &mut data, +, scalar)
+    } else {
+        operate_on_vec_by_scalar!(!inplace &data, +, scalar)
+    };
+    mem::forget(data);
+    into_data_ptr(result)
+
+}
+
+#[no_mangle]
 pub extern "C" fn sum(data_ptr: DataPtr) -> DataPtr {
 
     let data = from_data_ptr(data_ptr);

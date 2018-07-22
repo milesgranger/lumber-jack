@@ -7,9 +7,10 @@ import pandas as pd
 
 cimport numpy as np
 
+from libcpp cimport bool
 from cython cimport view
 from .includes cimport free_data, DataPtr, DType, Tag
-from .operators cimport arange, sum as _sum, cumsum, mean, multiply_by_scalar
+from .operators cimport arange, sum as _sum, cumsum, mean, multiply_by_scalar, add_by_scalar
 
 logger = logging.getLogger(__name__)
 
@@ -68,20 +69,29 @@ cdef class LumberJackSeries:
     """
     cdef _DataPtr _data_ptr
 
-    def _mul__(self, double scalar):
-        cdef DataPtr ptr = multiply_by_scalar(self._data_ptr.data_ptr, float(scalar), False)
+    def _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
+        cdef DataPtr ptr
+        if op == 'mul':
+            ptr = multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+        elif op == 'add':
+            ptr = add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+        else:
+            raise ValueError('Unknown operation: {}'.format(op))
         return create_lj_series_from_data_ptr(ptr)
 
     def __mul__(self, other):
-        return self._mul__(other)
-
-    def _imul__(self, double scalar):
-        cdef DataPtr ptr = multiply_by_scalar(self._data_ptr.data_ptr, float(scalar), True)
-        self = create_lj_series_from_data_ptr(ptr)
-        return self
+        return self._scalar_arithmetic_factory(float(other), 'mul', False)
 
     def __imul__(self, other):
-        return self._imul__(other)
+        self = self._scalar_arithmetic_factory(float(other), 'mul', True)
+        return self
+
+    def __add__(self, other):
+        return self._scalar_arithmetic_factory(float(other), 'add', False)
+
+    def __iadd__(self, other):
+        self = self._scalar_arithmetic_factory(float(other), 'add', True)
+        return self
 
     @staticmethod
     def arange(int start, int stop):

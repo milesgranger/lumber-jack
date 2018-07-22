@@ -10,3 +10,4 @@ cdef extern from "./../rust/liblumberjack.h":
     DataPtr cumsum(DataPtr ptr)
     double  mean(DataPtr ptr)
     DataPtr multiply_by_scalar(DataPtr ptr, double scalar, bool inplace)
+    DataPtr add_by_scalar(DataPtr ptr, double scalar, bool inplace)

@@ -14,6 +14,22 @@ class RustSeriesDundersTestCase(unittest.TestCase):
     Test double under impls.
     """
 
+    def test_add_by_scalar(self):
+        lj_series = lj.Series.arange(0, 5)
+        result = lj_series + 1
+        self.assertEqual(result.sum(), 15)
+
+        # Speed Test
+        run_series_method_tests('series + 1')
+
+    def test_add_by_scalar_inplace(self):
+        lj_series = lj.Series.arange(0, 5)
+        lj_series += 1
+        self.assertEqual(lj_series.sum(), 15)
+
+        # Speed Test
+        run_series_method_tests('series += 1')
+
     def test_multiply_by_scalar(self):
         lj_series = lj.Series.arange(0, 5)
         result = lj_series * 2

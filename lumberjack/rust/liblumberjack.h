@@ -38,6 +38,8 @@ extern "C" {
 
 /* Binding from Rust to Cython  */
 
+DataPtr add_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
+
 // Create Series from arange and pass back as DataPtr
 DataPtr arange(int32_t start, int32_t stop, DType dtype);
 
