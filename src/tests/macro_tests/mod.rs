@@ -25,6 +25,17 @@ pub mod opterate_on_vec_by_scalar_tests {
     }
 
     #[test]
+    fn multiply_i32vec_f64scalar_not_inplace() {
+        // Test multiplication by creating a copy
+        let data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
+        let orig = data.clone();
+        let new_data = operate_on_vec_by_scalar!(!inplace data, *=, 2_f64);
+        assert_eq!(&Data::Int32(vec![1_i32, 2_i32, 3_i32]), &orig);
+        assert_eq!(&Data::Float64(vec![2., 4., 6.]), &new_data);
+        println!("Original: {:?}, New: {:?}", orig, new_data);
+    }
+
+    #[test]
     fn multiply_i32vec_i32scalar_inplace() {
         // Test multiplication by inplace, all i32
         let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
@@ -46,16 +57,5 @@ pub mod opterate_on_vec_by_scalar_tests {
         let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
         data = operate_on_vec_by_scalar!(inplace data, +=, 1_f64);
         assert_eq!(&Data::Float64(vec![2., 3., 4.]), &data);
-    }
-
-    #[test]
-    fn multiply_i32vec_f64scalar_not_inplace() {
-        // Test multiplication by creating a copy
-        let data = Data::Int32(vec![1, 2, 3]);
-        let orig = data.clone();
-        let new_data = operate_on_vec_by_scalar!(inplace data, *=, 2_f64);
-        assert_eq!(&Data::Int32(vec![1, 2, 3]), &orig);
-        assert_eq!(&Data::Float64(vec![2., 4., 6.]), &new_data);
-        println!("Original: {:?}, New: {:?}", orig, new_data);
     }
 }

@@ -50,6 +50,16 @@ pub extern "C" fn multiply_by_scalar(data_ptr: DataPtr, scalar: f64, inplace: bo
     };
 
     ptr
+
+    /*
+    let data = from_data_ptr(data_ptr);
+    let result = if inplace {
+        operate_on_vec_by_scalar!(inplace data, *=, scalar)
+    } else {
+        operate_on_vec_by_scalar!(!inplace data, *=, scalar)
+    };
+    into_data_ptr(result)
+    */
 }
 
 #[no_mangle]
