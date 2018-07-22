@@ -6,7 +6,7 @@ use self::super::containers::{Data, into_data_ptr, from_data_ptr, DataPtr, DType
 fn test_scalar_multiply_i32vec_i32scalar_not_inplace() {
     // Test multiplication by creating a copy
     let data = Data::Int32(vec![1, 2, 3]);
-    let new_data = multiply_vec_by_scalar!(!inplace &data, 2);
+    let new_data = operate_on_vec_by_scalar!(!inplace &data, 2);
     assert_eq!(&Data::Int32(vec![1, 2, 3]), &data);
     assert_eq!(&Data::Int32(vec![2, 4, 6]), &new_data);
     println!("Original: {:?}, New: {:?}", data, new_data);
@@ -16,7 +16,7 @@ fn test_scalar_multiply_i32vec_i32scalar_not_inplace() {
 fn test_scalar_multiply_i32vec_i32scalar_inplace() {
     // Test multiplication by inplace, all i32
     let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
-    data = multiply_vec_by_scalar!(inplace data, 2_i32);
+    data = operate_on_vec_by_scalar!(inplace data, 2_i32);
     assert_eq!(&Data::Int32(vec![2, 4, 6]), &data);
 }
 
@@ -24,7 +24,7 @@ fn test_scalar_multiply_i32vec_i32scalar_inplace() {
 fn test_scalar_multiply_i32vec_f64scalar_inplace() {
     // Test multiplication by inplace, vec of i32 * f64
     let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
-    data = multiply_vec_by_scalar!(inplace data, 2_f64);
+    data = operate_on_vec_by_scalar!(inplace data, 2_f64);
     assert_eq!(&Data::Float64(vec![2., 4., 6.]), &data);
 }
 
@@ -33,7 +33,7 @@ fn test_scalar_multiply_i32vec_f64scalar_not_inplace() {
     // Test multiplication by creating a copy
     let data = Data::Int32(vec![1, 2, 3]);
     let orig = data.clone();
-    let new_data = multiply_vec_by_scalar!(inplace data, 2_f64);
+    let new_data = operate_on_vec_by_scalar!(inplace data, 2_f64);
     assert_eq!(&Data::Int32(vec![1, 2, 3]), &orig);
     assert_eq!(&Data::Float64(vec![2., 4., 6.]), &new_data);
     println!("Original: {:?}, New: {:?}", orig, new_data);
