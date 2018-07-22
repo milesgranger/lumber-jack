@@ -15,15 +15,15 @@ macro_rules! operate_on_vec_by_scalar {
             // If scalar is f64...
             if let Some(scalar) = (&$scalar as &Any).downcast_ref::<f64>() {
                 match $data {
-                    Data::Float64(vec) => { Data::Float64(vec.into_iter().map(|mut v| {v $op *scalar; v}).collect()) },
-                    Data::Int32(vec) => { Data::Float64(vec.into_iter().map(|v| {let mut v = v as f64; v $op *scalar; v}).collect()) }
+                    Data::Float64(mut vec) => { Data::Float64(vec.iter_mut().map(|v| *v $op *scalar).collect()) },
+                    Data::Int32(mut vec) => { Data::Float64(vec.iter_mut().map(|v| *v as f64 $op *scalar).collect()) }
                 }
 
             // If scalar is i32...
             } else if let Some(scalar) = (&$scalar as &Any).downcast_ref::<i32>() {
                 match $data {
-                    Data::Float64(vec) => { Data::Float64(vec.into_iter().map(|mut v| {v $op *scalar as f64; v}).collect()) },
-                    Data::Int32(vec) => { Data::Int32(vec.into_iter().map(|mut v| {v $op *scalar; v}).collect()) }
+                    Data::Float64(mut vec) => { Data::Float64(vec.iter_mut().map(|v| *v $op *scalar as f64).collect()) },
+                    Data::Int32(mut vec) => { Data::Int32(vec.iter_mut().map(|v| *v $op *scalar).collect()) }
                 }
             } else {
                 panic!("Unexpected Scalar type!");
@@ -45,15 +45,15 @@ macro_rules! operate_on_vec_by_scalar {
             // If scalar is f64...
             if let Some(scalar) = (&$scalar as &Any).downcast_ref::<f64>() {
                 match $data {
-                    Data::Float64(ref vec) => { Data::Float64(vec.clone().into_iter().map(|mut v| {v $op *scalar as f64; v}).collect()) },
-                    Data::Int32(ref vec) => { Data::Float64(vec.clone().into_iter().map(|v| {let mut val = v as f64; val $op *scalar; val}).collect()) }
+                    Data::Float64(ref vec) => { Data::Float64(vec.clone().iter().map(|v| *v $op scalar).collect()) },
+                    Data::Int32(ref vec) => { Data::Float64(vec.clone().iter().map(|v| *v as f64 $op scalar).collect()) }
                 }
 
             // If scalar is i32...
             } else if let Some(scalar) = (&$scalar as &Any).downcast_ref::<i32>() {
                 match $data {
-                    Data::Float64(ref vec) => { Data::Float64(vec.clone().into_iter().map(|mut v| {v $op *scalar as f64; v}).collect()) },
-                    Data::Int32(ref vec) => { Data::Int32(vec.clone().into_iter().map(|mut v| {v $op *scalar; v}).collect()) }
+                    Data::Float64(ref vec) => { Data::Float64(vec.clone().iter().map(|v| *v $op *scalar as f64).collect()) },
+                    Data::Int32(ref vec) => { Data::Int32(vec.clone().iter().map(|v| *v $op scalar).collect()) }
                 }
             } else {
                 panic!("Unexpected Scalar type!");
