@@ -7,7 +7,8 @@ macro_rules! operate_on_vec_by_scalar {
     (inplace $data:expr, $op:tt, $scalar:expr) => {
 
         {
-            use containers::{Data};
+            use std::mem;
+            use containers::{Data, DType, AsType};
             use std::any::Any;
 
             // Get vec which can contain any primitive
@@ -15,31 +16,34 @@ macro_rules! operate_on_vec_by_scalar {
 
             // If scalar is f64...
             if let Some(scalar) = (&$scalar as &Any).downcast_ref::<f64>() {
+
+                $data.astype(DType::Float64);
+
                 match $data {
                     Data::Float64(ref mut vec) => {
-                        Data::Float64(
-                            vec.iter_mut().map(|v| *v $op *scalar).collect()
-                        )
+                        for v in vec.iter_mut() {
+                            *v = *v $op scalar;
+                        }
                     },
-                    Data::Int32(ref mut vec) => {
-                        Data::Float64(
-                            vec.iter_mut().map(|v| *v as f64 $op *scalar).collect()
-                        )
-                    }
+                    _ => panic!("Multiplying any dtype by f64 should result in a vec of f64!")
                 }
+
+                mem::forget($data)
 
             // If scalar is i32...
             } else if let Some(scalar) = (&$scalar as &Any).downcast_ref::<i32>() {
                 match $data {
                     Data::Float64(ref mut vec) => {
-                        Data::Float64(
-                            vec.iter_mut().map(|v| *v $op *scalar as f64).collect()
-                        )
+                            //vec.iter_mut().map(|v| *v $op *scalar as f64).collect()
+                            for v in vec.iter_mut() {
+                                *v = *v $op *scalar as f64;
+                            }
                     },
                     Data::Int32(ref mut vec) => {
-                        Data::Int32(
-                            vec.iter_mut().map(|v| *v $op *scalar).collect()
-                        )
+                            //vec.iter_mut().map(|v| *v $op *scalar).collect()
+                            for v in vec.iter_mut() {
+                                *v = *v $op *scalar
+                            }
                     }
                 }
             } else {

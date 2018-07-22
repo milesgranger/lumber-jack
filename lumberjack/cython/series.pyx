@@ -69,16 +69,24 @@ cdef class LumberJackSeries:
     """
     cdef _DataPtr _data_ptr
 
-    def _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
+    cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
         """
         Helper function to facilitate dunder methods requiring access to _DataPtr object
         which will not work inside of those.
         """
         cdef DataPtr ptr
         if op == 'mul':
-            ptr = ops.multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            if inplace:
+                ops.imultiply_by_scalar(&self._data_ptr.data_ptr, scalar)
+                return
+            else:
+                ptr = ops.multiply_by_scalar(self._data_ptr.data_ptr, scalar)
         elif op == 'add':
-            ptr = ops.add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            if inplace:
+                ops.iadd_by_scalar(&self._data_ptr.data_ptr, scalar)
+                return
+            else:
+                ptr = ops.add_by_scalar(self._data_ptr.data_ptr, scalar)
         else:
             raise ValueError('Unknown operation: {}'.format(op))
         return create_lj_series_from_data_ptr(ptr)
@@ -87,14 +95,14 @@ cdef class LumberJackSeries:
         return self._scalar_arithmetic_factory(float(other), 'mul', False)
 
     def __imul__(self, other):
-        self = self._scalar_arithmetic_factory(float(other), 'mul', True)
+        self._scalar_arithmetic_factory(float(other), 'mul', True)
         return self
 
     def __add__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'add', False)
 
     def __iadd__(self, other):
-        self = self._scalar_arithmetic_factory(float(other), 'add', True)
+        self._scalar_arithmetic_factory(float(other), 'add', True)
         return self
 
     @staticmethod
