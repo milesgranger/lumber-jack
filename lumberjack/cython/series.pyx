@@ -9,8 +9,8 @@ cimport numpy as np
 
 from libcpp cimport bool
 from cython cimport view
-from .includes cimport free_data, DataPtr, DType, Tag
-from .operators cimport arange, sum as _sum, cumsum, mean, multiply_by_scalar, add_by_scalar
+from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag
+cimport lumberjack.cython.operators as ops
 
 logger = logging.getLogger(__name__)
 
@@ -70,11 +70,15 @@ cdef class LumberJackSeries:
     cdef _DataPtr _data_ptr
 
     def _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
+        """
+        Helper function to facilitate dunder methods requiring access to _DataPtr object
+        which will not work inside of those.
+        """
         cdef DataPtr ptr
         if op == 'mul':
-            ptr = multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            ptr = ops.multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
         elif op == 'add':
-            ptr = add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            ptr = ops.add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
         else:
             raise ValueError('Unknown operation: {}'.format(op))
         return create_lj_series_from_data_ptr(ptr)
@@ -98,21 +102,21 @@ cdef class LumberJackSeries:
         """
         This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
         """
-        cdef DataPtr ptr = arange(start, stop, DType.Int32)
+        cdef DataPtr ptr = ops.arange(start, stop, DType.Int32)
         return create_lj_series_from_data_ptr(ptr)
 
     def mean(self):
         cdef double avg
-        avg = mean(self._data_ptr.data_ptr)
+        avg = ops.mean(self._data_ptr.data_ptr)
         return avg
 
     def sum(self):
-        cdef DataPtr ptr = _sum(self._data_ptr.data_ptr)
+        cdef DataPtr ptr = ops.sum(self._data_ptr.data_ptr)
         cdef LumberJackSeries series = create_lj_series_from_data_ptr(ptr)
         return series._data_ptr.array_view[0]
 
     def cumsum(self):
-        cdef DataPtr ptr = cumsum(self._data_ptr.data_ptr)
+        cdef DataPtr ptr = ops.cumsum(self._data_ptr.data_ptr)
         return create_lj_series_from_data_ptr(ptr)
 
     def to_cython_array_view(self):
