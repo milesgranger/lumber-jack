@@ -1,22 +1,42 @@
 use self::super::prelude::*;
-use self::super::{series, containers};
-
-#[macro_use]
-use macros;
+use self::super::{series};
+use self::super::containers::{Data, into_data_ptr, from_data_ptr, DataPtr, DType};
 
 #[test]
-fn test_scalar_multiply() {
+fn test_scalar_multiply_i32vec_i32scalar_not_inplace() {
     // Test multiplication by creating a copy
-    let data = vec![1, 2, 3];
+    let data = Data::Int32(vec![1, 2, 3]);
     let new_data = multiply_vec_by_scalar!(!inplace &data, 2);
-    assert_eq!(&vec![1, 2, 3], &data);
-    assert_eq!(&vec![2, 4, 6], &new_data);
+    assert_eq!(&Data::Int32(vec![1, 2, 3]), &data);
+    assert_eq!(&Data::Int32(vec![2, 4, 6]), &new_data);
     println!("Original: {:?}, New: {:?}", data, new_data);
+}
 
-    // Test multiplication by inplace
-    let mut data = vec![1, 2, 3];
-    multiply_vec_by_scalar!(inplace &mut data, 2);
-    assert_eq!(vec![2, 4, 6], data)
+#[test]
+fn test_scalar_multiply_i32vec_i32scalar_inplace() {
+    // Test multiplication by inplace, all i32
+    let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
+    data = multiply_vec_by_scalar!(inplace data, 2_i32);
+    assert_eq!(&Data::Int32(vec![2, 4, 6]), &data);
+}
+
+#[test]
+fn test_scalar_multiply_i32vec_f64scalar_inplace() {
+    // Test multiplication by inplace, vec of i32 * f64
+    let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
+    data = multiply_vec_by_scalar!(inplace data, 2_f64);
+    assert_eq!(&Data::Float64(vec![2., 4., 6.]), &data);
+}
+
+#[test]
+fn test_scalar_multiply_i32vec_f64scalar_not_inplace() {
+    // Test multiplication by creating a copy
+    let data = Data::Int32(vec![1, 2, 3]);
+    let orig = data.clone();
+    let new_data = multiply_vec_by_scalar!(inplace data, 2_f64);
+    assert_eq!(&Data::Int32(vec![1, 2, 3]), &orig);
+    assert_eq!(&Data::Float64(vec![2., 4., 6.]), &new_data);
+    println!("Original: {:?}, New: {:?}", orig, new_data);
 }
 
 #[test]
@@ -41,10 +61,10 @@ fn test_alterations_one_hot() {
 #[test]
 fn test_cumsum() {
     let vec = vec![0, 1, 2, 3, 4];
-    let ptr = containers::into_data_ptr(containers::Data::Int32(vec));
+    let ptr = into_data_ptr(Data::Int32(vec));
     let result = series::cumsum(ptr);
     let vec = match result {
-        containers::DataPtr::Int32 { data_ptr, len } => {
+        DataPtr::Int32 { data_ptr, len } => {
             unsafe { Vec::from_raw_parts(data_ptr, len, len)}
         },
         _ => panic!("Expected to get DataPtr::Int32!")
@@ -56,9 +76,9 @@ fn test_cumsum() {
 #[test]
 fn test_sum() {
     let vec = vec![1, 2, 3, 4];
-    let ptr = containers::into_data_ptr(containers::Data::Int32(vec));
+    let ptr = into_data_ptr(Data::Int32(vec));
     let result = series::sum(ptr);
-    if let containers::DataPtr::Int32 { data_ptr, len } = result {
+    if let DataPtr::Int32 { data_ptr, len } = result {
         let v = unsafe { Vec::from_raw_parts(data_ptr, len, len)};
         assert_eq!(v.last().expect("Vector was empty!"), &10_i32)
     } else {
@@ -70,16 +90,16 @@ fn test_sum() {
 #[test]
 fn test_mean() {
     let vec = vec![1, 1, 1, 1, 1];
-    let ptr = containers::into_data_ptr(containers::Data::Int32(vec));
+    let ptr = into_data_ptr(Data::Int32(vec));
     let result = series::mean(ptr);
     assert_eq!(result, 1_f64);
 }
 
 #[test]
 fn test_arange() {
-    let v = series::arange(0, 5, containers::DType::Int32);
-    let data = containers::from_data_ptr(v);
-    if let containers::Data::Int32(vec) = data {
+    let v = series::arange(0, 5, DType::Int32);
+    let data = from_data_ptr(v);
+    if let Data::Int32(vec) = data {
         assert_eq!(vec.iter().sum::<i32>(), 10);
     } else {
         panic!("Expected Data::Int32 but got {:?} instead!", data);

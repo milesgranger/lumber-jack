@@ -17,7 +17,7 @@ pub enum DataPtr {
 
 
 /// Container for various supported data types
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum Data {
     Float64(Vec<f64>),
     Int32(Vec<i32>)

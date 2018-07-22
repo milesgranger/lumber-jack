@@ -6,7 +6,6 @@ This module consists of vector operations; sum, multiply, divide, etc.
 
 use std::iter::Sum;
 use std::mem;
-use ndarray::{Array, ArrayViewMut};
 use containers::{DataPtr, Data, into_data_ptr, from_data_ptr};
 
 pub trait LumberJackData {}
