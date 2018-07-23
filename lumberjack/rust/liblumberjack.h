@@ -52,6 +52,8 @@ double mean(DataPtr data_ptr);
 
 DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
+double series_map(DataPtr data_ptr, char *function);
+
 DataPtr sum(DataPtr data_ptr);
 
 } // extern "C"

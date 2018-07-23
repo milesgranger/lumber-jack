@@ -14,14 +14,14 @@ def run_series_method_tests(stmt: str, alternate_numpy_stmt: str=None):
     """
     # Test speed
     lj_time = timeit.timeit(stmt=stmt,
-                            number=10000,
-                            setup='import lumberjack as lj; series = lj.Series.arange(0, 10000)')
+                            number=2500,
+                            setup='import lumberjack as lj; series = lj.Series.arange(0, 50000)')
     pd_time = timeit.timeit(stmt=stmt,
-                            number=10000,
-                            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 10000))')
+                            number=2500,
+                            setup='import numpy as np; import pandas as pd; series = pd.Series(np.arange(0, 50000))')
     np_time = timeit.timeit(stmt=stmt if alternate_numpy_stmt is None else alternate_numpy_stmt,
-                            number=10000,
-                            setup='import numpy as np; series = np.arange(0, 10000)')
+                            number=2500,
+                            setup='import numpy as np; series = np.arange(0, 50000)')
 
     logger.debug('"{}" speed: Avg LumberJack: {:.4f}s -- Pandas: {:.4f} -- Numpy: {:.4f}'
                  .format(stmt, lj_time, pd_time, np_time))

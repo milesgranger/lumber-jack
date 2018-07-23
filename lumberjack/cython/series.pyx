@@ -7,6 +7,9 @@ import pandas as pd
 
 cimport numpy as np
 
+from libc.stdlib cimport malloc
+from libc.string cimport strcpy, strlen
+
 from libcpp cimport bool
 from cython cimport view
 from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag
@@ -67,6 +70,8 @@ cdef class _DataPtr:
                     self.vec_ptr_int32 != NULL:
                 free_data(self.data_ptr)
 
+
+
 cdef class LumberJackSeries:
     """
     LumberJackSeries
@@ -74,6 +79,15 @@ cdef class LumberJackSeries:
     Some implementations of Numpy / Pandas functionality with bindings to Rust.
     """
     cdef _DataPtr _data_ptr
+
+    cpdef map(self, bytes func):
+        cdef char* func_def = func
+        cdef Py_ssize_t n = strlen(func_def)
+        cdef char* c_string = <char *> malloc((n + 1) * sizeof(char))
+        if not c_string:
+            raise MemoryError()
+        strcpy(c_string, func_def)
+        ops.series_map(self._data_ptr.data_ptr, c_string)
 
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
         """

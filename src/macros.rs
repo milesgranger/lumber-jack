@@ -1,3 +1,14 @@
+#[macro_export]
+macro_rules! series_map {
+
+    ($data:expr, $function:tt) => {
+        {
+            println!("Function: {:?}", $function);
+        }
+    }
+
+}
+
 
 #[macro_export]
 macro_rules! operate_on_vec_by_scalar {

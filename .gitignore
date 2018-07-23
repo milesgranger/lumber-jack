@@ -113,3 +113,5 @@ src/Cargo.toml
 !/src/Cargo.toml
 wheelhouse/
 .pytest_cache/
+/lumberjack/rust/*.rlib
+/lumberjack/rust/build-script-build

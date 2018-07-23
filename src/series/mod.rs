@@ -1,11 +1,14 @@
 #![allow(dead_code)]
 
 mod operators;
+pub mod map;
+
 use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr};
 pub use series::operators::*;
 
+
 /*
-    Functions exposed to C which create lumberjack series or deal with existing ones
+    Functions exposed to C which create lumberjack series or frees one.
 */
 
 /// Create Series from arange and pass back as DataPtr

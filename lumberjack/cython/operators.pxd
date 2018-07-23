@@ -11,3 +11,4 @@ cdef extern from "./../rust/liblumberjack.h":
     double  mean(DataPtr ptr)
     DataPtr multiply_by_scalar(DataPtr ptr, double scalar, bool inplace)
     DataPtr add_by_scalar(DataPtr ptr, double scalar, bool inplace)
+    double  series_map(DataPtr ptr, char* function)

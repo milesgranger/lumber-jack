@@ -1,6 +1,9 @@
+#![feature(use_extern_macros, specialization, pro_macro)]
+
 extern crate ndarray;
 extern crate num;
 extern crate libc;
+extern crate pyo3;
 
 #[macro_use]
 pub mod macros;

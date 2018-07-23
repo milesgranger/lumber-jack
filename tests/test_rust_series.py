@@ -15,6 +15,10 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
+    def test_series_map(self):
+        lj_series = lj.Series.arange(0, 10000)
+        lj_series.map(b'lambda v: v * python')
+
     def test_mean(self):
         """
         Test average/mean of series
