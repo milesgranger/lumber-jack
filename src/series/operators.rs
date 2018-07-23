@@ -24,30 +24,35 @@ pub fn sum_vec<'a, T>(vec: &'a Vec<T>) -> Vec<T>
 
 #[no_mangle]
 pub extern "C" fn multiply_by_scalar(data_ptr: DataPtr, scalar: f64, inplace: bool) -> DataPtr {
-
-    let mut data = from_data_ptr(data_ptr);
+    let data = from_data_ptr(data_ptr);
     let result = if inplace {
-        operate_on_vec_by_scalar!(inplace &mut data, *, scalar)
+        //let size = data.len() as f64;
+        let r = operate_on_vec_by_scalar!(inplace data, *, scalar);
+        //let new_size = data.len() as f64;
+        //println!("Reduction in size after inplace: {}", (size - new_size) / size);
+        r
     } else {
-        operate_on_vec_by_scalar!(!inplace &data, *, scalar)
+        let r = operate_on_vec_by_scalar!(!inplace &data, *, scalar);
+        mem::forget(data);
+        r
     };
-    mem::forget(data);
-    into_data_ptr(result)
 
+    into_data_ptr(result)
 }
 
 #[no_mangle]
 pub extern "C" fn add_by_scalar(data_ptr: DataPtr, scalar: f64, inplace: bool) -> DataPtr {
+    let data = from_data_ptr(data_ptr);
 
-    let mut data = from_data_ptr(data_ptr);
     let result = if inplace {
-        operate_on_vec_by_scalar!(inplace &mut data, +, scalar)
+        operate_on_vec_by_scalar!(inplace data, +, scalar)
     } else {
-        operate_on_vec_by_scalar!(!inplace &data, +, scalar)
+        let r = operate_on_vec_by_scalar!(!inplace &data, +, scalar);
+        mem::forget(data);
+        r
     };
-    mem::forget(data);
-    into_data_ptr(result)
 
+    into_data_ptr(result)
 }
 
 #[no_mangle]

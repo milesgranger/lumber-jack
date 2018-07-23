@@ -9,8 +9,8 @@ cimport numpy as np
 
 from libcpp cimport bool
 from cython cimport view
-from .includes cimport free_data, DataPtr, DType, Tag
-from .operators cimport arange, sum as _sum, cumsum, mean, multiply_by_scalar, add_by_scalar
+from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag
+cimport lumberjack.cython.operators as ops
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +40,7 @@ cdef LumberJackSeries create_lj_series_from_data_ptr(DataPtr ptr):
         raise ValueError('Got unknown Dtype: {}'.format(ptr.tag))
 
     _data_ptr.data_ptr = ptr
+    _data_ptr.freed_by_rust = False
     series._data_ptr = _data_ptr
     return series
 
@@ -47,6 +48,10 @@ cdef class _DataPtr:
     """
     Holds generic access to various data types from a DataPtr
     """
+    # Flag to avoid double freeing, when inplace ops are done in rust, the original
+    # data is consumed and freed simultaneously
+    cdef bool freed_by_rust
+
     # Possible array pointers for different dtypes
     cdef double* vec_ptr_float64
     cdef np.int32_t* vec_ptr_int32
@@ -57,9 +62,10 @@ cdef class _DataPtr:
     cdef DataPtr data_ptr
 
     def __dealloc__(self):
-        if self.vec_ptr_float64 != NULL or \
-                self.vec_ptr_int32 != NULL:
-            free_data(self.data_ptr)
+        if not self.freed_by_rust:
+            if self.vec_ptr_float64 != NULL or \
+                    self.vec_ptr_int32 != NULL:
+                free_data(self.data_ptr)
 
 cdef class LumberJackSeries:
     """
@@ -69,14 +75,22 @@ cdef class LumberJackSeries:
     """
     cdef _DataPtr _data_ptr
 
-    def _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
+    cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
+        """
+        Helper function to facilitate dunder methods requiring access to _DataPtr object
+        which will not work inside of those.
+        """
         cdef DataPtr ptr
         if op == 'mul':
-            ptr = multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            ptr = ops.multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
         elif op == 'add':
-            ptr = add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            ptr = ops.add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
         else:
             raise ValueError('Unknown operation: {}'.format(op))
+
+        # If this was in inplace op, rust has already consumed the data, avoid double free
+        if inplace:
+            self._data_ptr.freed_by_rust = True
         return create_lj_series_from_data_ptr(ptr)
 
     def __mul__(self, other):
@@ -90,7 +104,7 @@ cdef class LumberJackSeries:
         return self._scalar_arithmetic_factory(float(other), 'add', False)
 
     def __iadd__(self, other):
-        self = self._scalar_arithmetic_factory(float(other), 'add', True)
+        self =  self._scalar_arithmetic_factory(float(other), 'add', True)
         return self
 
     @staticmethod
@@ -98,21 +112,21 @@ cdef class LumberJackSeries:
         """
         This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
         """
-        cdef DataPtr ptr = arange(start, stop, DType.Int32)
+        cdef DataPtr ptr = ops.arange(start, stop, DType.Int32)
         return create_lj_series_from_data_ptr(ptr)
 
     def mean(self):
         cdef double avg
-        avg = mean(self._data_ptr.data_ptr)
+        avg = ops.mean(self._data_ptr.data_ptr)
         return avg
 
     def sum(self):
-        cdef DataPtr ptr = _sum(self._data_ptr.data_ptr)
+        cdef DataPtr ptr = ops.sum(self._data_ptr.data_ptr)
         cdef LumberJackSeries series = create_lj_series_from_data_ptr(ptr)
         return series._data_ptr.array_view[0]
 
     def cumsum(self):
-        cdef DataPtr ptr = cumsum(self._data_ptr.data_ptr)
+        cdef DataPtr ptr = ops.cumsum(self._data_ptr.data_ptr)
         return create_lj_series_from_data_ptr(ptr)
 
     def to_cython_array_view(self):

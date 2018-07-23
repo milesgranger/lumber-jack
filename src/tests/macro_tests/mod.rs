@@ -39,7 +39,7 @@ pub mod opterate_on_vec_by_scalar_tests {
     fn multiply_i32vec_i32scalar_inplace() {
         // Test multiplication by inplace, all i32
         let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
-        data = operate_on_vec_by_scalar!(inplace &mut data, *, 2_i32);
+        data = operate_on_vec_by_scalar!(inplace data, *, 2_i32);
         assert_eq!(&Data::Int32(vec![2, 4, 6]), &data);
     }
 
@@ -47,7 +47,7 @@ pub mod opterate_on_vec_by_scalar_tests {
     fn multiply_i32vec_f64scalar_inplace() {
         // Test multiplication by inplace, vec of i32 * f64
         let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
-        data = operate_on_vec_by_scalar!(inplace &mut data, *, 2_f64);
+        data = operate_on_vec_by_scalar!(inplace data, *, 2_f64);
         assert_eq!(&Data::Float64(vec![2., 4., 6.]), &data);
     }
 
@@ -55,7 +55,7 @@ pub mod opterate_on_vec_by_scalar_tests {
     fn add_i32vec_f64scalar_inplace() {
         // Test multiplication by inplace, vec of i32 * f64
         let mut data = Data::Int32(vec![1_i32, 2_i32, 3_i32]);
-        data = operate_on_vec_by_scalar!(inplace &mut data, +, 1_f64);
+        data = operate_on_vec_by_scalar!(inplace data, +, 1_f64);
         assert_eq!(&Data::Float64(vec![2., 3., 4.]), &data);
     }
 }
