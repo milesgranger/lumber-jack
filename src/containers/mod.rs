@@ -24,6 +24,32 @@ pub enum Data {
     Int32(Vec<i32>)
 }
 
+pub trait Length {
+    fn len(&self) -> usize;
+}
+
+impl Length for Data {
+    fn len(&self) -> usize {
+        match self {
+            Data::Float64(ref vec) => vec.len(),
+            Data::Int32(ref vec) => vec.len()
+        }
+    }
+}
+
+pub trait GetDType {
+    fn get_dtype(&self) -> DType;
+}
+
+impl GetDType for Data {
+    fn get_dtype(&self) -> DType {
+        match self {
+            Data::Float64(ref _vec) => DType::Float64,
+            Data::Int32(ref _vec) => DType::Int32
+        }
+    }
+}
+
 pub trait AsType {
 
     // Create another Data enum as another type

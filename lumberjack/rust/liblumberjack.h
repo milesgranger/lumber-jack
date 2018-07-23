@@ -38,7 +38,7 @@ extern "C" {
 
 /* Binding from Rust to Cython  */
 
-DataPtr add_by_scalar(DataPtr data_ptr, double scalar);
+DataPtr add_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
 // Create Series from arange and pass back as DataPtr
 DataPtr arange(int32_t start, int32_t stop, DType dtype);
@@ -48,13 +48,9 @@ DataPtr cumsum(DataPtr data_ptr);
 // Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
 void free_data(DataPtr data_ptr);
 
-void iadd_by_scalar(DataPtr *data_ptr, double scalar);
-
-void imultiply_by_scalar(DataPtr *data_ptr, double scalar);
-
 double mean(DataPtr data_ptr);
 
-DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar);
+DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
 DataPtr sum(DataPtr data_ptr);
 

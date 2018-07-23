@@ -40,6 +40,7 @@ cdef LumberJackSeries create_lj_series_from_data_ptr(DataPtr ptr):
         raise ValueError('Got unknown Dtype: {}'.format(ptr.tag))
 
     _data_ptr.data_ptr = ptr
+    _data_ptr.freed_by_rust = False
     series._data_ptr = _data_ptr
     return series
 
@@ -47,6 +48,10 @@ cdef class _DataPtr:
     """
     Holds generic access to various data types from a DataPtr
     """
+    # Flag to avoid double freeing, when inplace ops are done in rust, the original
+    # data is consumed and freed simultaneously
+    cdef bool freed_by_rust
+
     # Possible array pointers for different dtypes
     cdef double* vec_ptr_float64
     cdef np.int32_t* vec_ptr_int32
@@ -57,9 +62,10 @@ cdef class _DataPtr:
     cdef DataPtr data_ptr
 
     def __dealloc__(self):
-        if self.vec_ptr_float64 != NULL or \
-                self.vec_ptr_int32 != NULL:
-            free_data(self.data_ptr)
+        if not self.freed_by_rust:
+            if self.vec_ptr_float64 != NULL or \
+                    self.vec_ptr_int32 != NULL:
+                free_data(self.data_ptr)
 
 cdef class LumberJackSeries:
     """
@@ -76,33 +82,29 @@ cdef class LumberJackSeries:
         """
         cdef DataPtr ptr
         if op == 'mul':
-            if inplace:
-                ops.imultiply_by_scalar(&self._data_ptr.data_ptr, scalar)
-                return
-            else:
-                ptr = ops.multiply_by_scalar(self._data_ptr.data_ptr, scalar)
+            ptr = ops.multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
         elif op == 'add':
-            if inplace:
-                ops.iadd_by_scalar(&self._data_ptr.data_ptr, scalar)
-                return
-            else:
-                ptr = ops.add_by_scalar(self._data_ptr.data_ptr, scalar)
+            ptr = ops.add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
         else:
             raise ValueError('Unknown operation: {}'.format(op))
+
+        # If this was in inplace op, rust has already consumed the data, avoid double free
+        if inplace:
+            self._data_ptr.freed_by_rust = True
         return create_lj_series_from_data_ptr(ptr)
 
     def __mul__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'mul', False)
 
     def __imul__(self, other):
-        self._scalar_arithmetic_factory(float(other), 'mul', True)
+        self = self._scalar_arithmetic_factory(float(other), 'mul', True)
         return self
 
     def __add__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'add', False)
 
     def __iadd__(self, other):
-        self._scalar_arithmetic_factory(float(other), 'add', True)
+        self =  self._scalar_arithmetic_factory(float(other), 'add', True)
         return self
 
     @staticmethod
