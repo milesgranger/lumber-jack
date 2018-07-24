@@ -8,7 +8,8 @@ import pandas as pd
 cimport numpy as np
 
 from libc.stdlib cimport malloc
-from libc.string cimport strcpy, strlen
+from libc.string cimport strcpy, strlen, memcpy
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 from libcpp cimport bool
 from cython cimport view
@@ -45,6 +46,7 @@ cdef LumberJackSeries create_lj_series_from_data_ptr(DataPtr ptr):
     _data_ptr.data_ptr = ptr
     _data_ptr.freed_by_rust = False
     series._data_ptr = _data_ptr
+    series.data_ptr = &ptr
     return series
 
 cdef class _DataPtr:
@@ -71,7 +73,6 @@ cdef class _DataPtr:
                 free_data(self.data_ptr)
 
 
-
 cdef class LumberJackSeries:
     """
     LumberJackSeries
@@ -79,6 +80,25 @@ cdef class LumberJackSeries:
     Some implementations of Numpy / Pandas functionality with bindings to Rust.
     """
     cdef _DataPtr _data_ptr
+    cdef DataPtr *data_ptr
+    cdef long size
+
+    def __getstate__(self):
+        return (self.get_data(), self.size)
+
+    def __setstate__(self, state):
+        self.set_data(*state)
+
+    cpdef bytes get_data(self):
+        return <bytes>(<char *>self.data_ptr)[:sizeof(DataPtr) * self.size]
+
+    cpdef void set_data(self, bytes data, long size):
+        PyMem_Free(self.data_ptr)
+        self.size = size
+        self.data_ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr) * self.size)
+        if not self.data_ptr:
+            raise MemoryError()
+        memcpy(self.data_ptr, <char *>data, sizeof(DataPtr) * self.size)
 
     cpdef map(self, bytes func):
         cdef char* func_def = func

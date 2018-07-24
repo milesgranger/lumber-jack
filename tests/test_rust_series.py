@@ -3,6 +3,7 @@
 import unittest
 import logging
 import timeit
+import pickle
 import numpy as np
 import pandas as pd
 import lumberjack as lj
@@ -18,6 +19,10 @@ class RustSeriesTestCase(unittest.TestCase):
     def test_series_map(self):
         lj_series = lj.Series.arange(0, 10000)
         lj_series.map(b'lambda v: v * python')
+
+    def test_series_pickle(self):
+        lj_series = lj.Series.arange(0, 100)
+        pkl = pickle.dumps(lj_series)
 
     def test_mean(self):
         """
