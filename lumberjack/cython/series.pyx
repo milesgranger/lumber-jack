@@ -49,33 +49,6 @@ cdef LumberJackSeries create_lj_series_from_data_ptr(DataPtr ptr):
     series.data_ptr = &series._data_ptr.data_ptr
     return series
 
-cdef LumberJackSeries create_lj_series_from_data_ptr_ref(DataPtr* ptr) except +:
-    """ 
-    Factory for creating LumberJackSeries from DataPtr
-    **cannot be used as classmethod from within LumberJackSeries**
-    """
-    series = LumberJackSeries()
-    cdef _DataPtr _data_ptr
-    _data_ptr = _DataPtr()
-
-    if ptr[0].tag == Tag.Tag_Float64:
-        _data_ptr.vec_ptr_float64 = ptr[0].float64.data_ptr
-        _data_ptr.array_view = <double[:ptr[0].float64.len]> ptr[0].float64.data_ptr
-        _data_ptr.len = ptr.float64.len
-
-    elif ptr[0].tag == Tag.Tag_Int32:
-        _data_ptr.vec_ptr_int32 = ptr[0].int32.data_ptr
-        _data_ptr.array_view = <np.int32_t[:ptr[0].int32.len]> ptr[0].int32.data_ptr
-        _data_ptr.len = ptr[0].int32.len
-
-    else:
-        raise ValueError('Got unknown Dtype: {}'.format(ptr.tag))
-
-    _data_ptr.data_ptr = ptr[0]
-    _data_ptr.freed_by_rust = True
-    series._data_ptr = _data_ptr
-    return series
-
 cdef class _DataPtr:
     """
     Holds generic access to various data types from a DataPtr
@@ -92,6 +65,30 @@ cdef class _DataPtr:
     cdef readonly view.array array_view
     cdef readonly int len
     cdef DataPtr data_ptr
+
+    @staticmethod
+    cdef _DataPtr from_ptr_ref(DataPtr *ptr):
+
+        cdef _DataPtr _data_ptr
+        _data_ptr = _DataPtr()
+
+        if ptr[0].tag == Tag.Tag_Float64:
+            _data_ptr.vec_ptr_float64 = ptr[0].float64.data_ptr
+            _data_ptr.array_view = <double[:ptr[0].float64.len]> ptr[0].float64.data_ptr
+            _data_ptr.len = ptr[0].float64.len
+
+        elif ptr[0].tag == Tag.Tag_Int32:
+            _data_ptr.vec_ptr_int32 = ptr[0].int32.data_ptr
+            _data_ptr.array_view = <np.int32_t[:ptr[0].int32.len]> ptr[0].int32.data_ptr
+            _data_ptr.len = ptr[0].int32.len
+
+        else:
+            raise ValueError('Got unknown Dtype: {}'.format(ptr[0].tag))
+
+        _data_ptr.freed_by_rust = True
+
+        return _data_ptr
+
 
     def __dealloc__(self):
         if not self.freed_by_rust:
@@ -124,9 +121,7 @@ cdef class LumberJackSeries:
         if not self.data_ptr:
             raise MemoryError()
         memcpy(self.data_ptr, <char *>data, sizeof(DataPtr))
-        self._data_ptr = _DataPtr()
-        self._data_ptr.len = self.data_ptr[0].int32.len
-        self = create_lj_series_from_data_ptr_ref(self.data_ptr)
+        self._data_ptr = _DataPtr.from_ptr_ref(self.data_ptr)
 
 
     cpdef map(self, bytes func):
