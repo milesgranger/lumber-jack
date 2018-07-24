@@ -21,8 +21,11 @@ class RustSeriesTestCase(unittest.TestCase):
         lj_series.map(b'lambda v: v * python')
 
     def test_series_pickle(self):
-        lj_series = lj.Series.arange(0, 100)
+        lj_series = lj.Series.arange(0, 10)
         pkl = pickle.dumps(lj_series)
+        _unpickled_series_view = pickle.loads(pkl)
+        logger.debug('Original: {}, Unpickled result: {}'.format(lj_series.to_numpy(), _unpickled_series_view.to_numpy()))
+        self.assertEqual(len(lj_series), len(_unpickled_series_view))
 
     def test_mean(self):
         """
