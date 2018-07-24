@@ -77,5 +77,4 @@ from lumberjack import alterations
 raw_texts = ['hello, there', 'hi, there']
 alterations.split_n_one_hot_encode(raw_texts, sep=',', cutoff=0)
 (['hello', 'there', 'hi'], [[1, 1, 0], [0, 1, 1]])
-
 ```

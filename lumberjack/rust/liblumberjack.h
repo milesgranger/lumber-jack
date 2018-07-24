@@ -52,7 +52,7 @@ double mean(DataPtr data_ptr);
 
 DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
-double series_map(DataPtr data_ptr, char *function);
+double series_map(DataPtr data_ptr, uint8_t *func_ptr, uint32_t len);
 
 DataPtr sum(DataPtr data_ptr);
 

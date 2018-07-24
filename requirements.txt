@@ -5,6 +5,7 @@
 #    pip-compile --output-file requirements.txt requirements.in
 #
 click==6.7                # via pip-tools
+cloudpickle==0.5.3
 cython==0.28.3
 first==2.0.1              # via pip-tools
 numpy==1.14.2

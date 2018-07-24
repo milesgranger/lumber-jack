@@ -4,6 +4,7 @@ import unittest
 import logging
 import timeit
 import pickle
+import cloudpickle
 import numpy as np
 import pandas as pd
 import lumberjack as lj
@@ -18,7 +19,11 @@ class RustSeriesTestCase(unittest.TestCase):
 
     def test_series_map(self):
         lj_series = lj.Series.arange(0, 10000)
-        lj_series.map(b'lambda v: v * python')
+        def function():
+            return 'hello'
+        print('shipping this function: {}'.format(function))
+        result = lj_series.map(function)
+        logger.debug('Result from .map() -> {}'.format(result))
 
     def test_series_pickle(self):
         lj_series = lj.Series.arange(0, 10)

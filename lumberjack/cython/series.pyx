@@ -2,6 +2,7 @@
 # distutils: language = c++
 
 import logging
+import cloudpickle
 import numpy as np
 import pandas as pd
 
@@ -12,6 +13,7 @@ from libc.string cimport strcpy, strlen, memcpy
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 from libcpp cimport bool
+from libcpp.string cimport string
 from cython cimport view
 from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag
 cimport lumberjack.cython.operators as ops
@@ -90,7 +92,8 @@ cdef class _DataPtr:
                 free_data(self.data_ptr)
 
 
-cdef class LumberJackSeries:
+
+cdef class LumberJackSeries(object):
     """
     LumberJackSeries
 
@@ -117,14 +120,14 @@ cdef class LumberJackSeries:
         self._data_ptr = _DataPtr.from_ptr_ref(self.data_ptr)
 
 
-    cpdef map(self, bytes func):
-        cdef char* func_def = func
-        cdef Py_ssize_t n = strlen(func_def)
-        cdef char* c_string = <char *> malloc((n + 1) * sizeof(char))
-        if not c_string:
-            raise MemoryError()
-        strcpy(c_string, func_def)
-        ops.series_map(self._data_ptr.data_ptr, c_string)
+    cpdef map(self, func):
+        cdef bytes  func_pickled = cloudpickle.dumps(func)
+        cdef np.ndarray array = np.fromstring(func_pickled, dtype=np.uint8)
+        if not array.flags['C_CONTIGUOUS']:
+            array = np.ascontiguousarray(array) # Makes a contiguous copy of the numpy array.
+
+        cdef np.uint8_t[::1] arr_view = array
+        return ops.series_map(self._data_ptr.data_ptr, &arr_view[0], array.shape[0])
 
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
         """
@@ -207,6 +210,12 @@ cdef class LumberJackSeries:
     def __iter__(self):
         return (self._data_ptr.array_view[i] for i in range(self._data_ptr.len))
 
+    def __getattr__(self, item):
+        def method(*args, **kwargs):
+            series = pd.Series(self.to_numpy())  # TODO: pass more features to constructor as we add them.
+            return getattr(series, item)(*args, **kwargs)
+        return method
+
     @staticmethod
     def from_numpy(np.ndarray array):
         """
@@ -224,12 +233,6 @@ cdef class LumberJackSeries:
         #series_ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
         #series = create_lumberjack_series_from_ptr(series_ptr)
         #return series
-
-    def __getattr__(self, item):
-        def method(*args, **kwargs):
-            series = pd.Series(self.to_numpy())  # TODO: pass more features to constructor as we add them.
-            return getattr(series, item)(*args, **kwargs)
-        return method
 
     def __repr__(self):
         return 'LumberJackSeries(length: {})'.format(self._data_ptr.len)
