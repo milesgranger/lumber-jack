@@ -20,42 +20,13 @@ logger = logging.getLogger(__name__)
 
 np.import_array()
 
-
-cdef LumberJackSeries create_lj_series_from_data_ptr(DataPtr ptr):
-    """ 
-    Factory for creating LumberJackSeries from DataPtr
-    **cannot be used as classmethod from within LumberJackSeries**
-    """
-    series = LumberJackSeries()
-    cdef _DataPtr _data_ptr
-    _data_ptr = _DataPtr()
-
-    if ptr.tag == Tag.Tag_Float64:
-        _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr
-        _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
-        _data_ptr.len = ptr.float64.len
-
-    elif ptr.tag == Tag.Tag_Int32:
-        _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr
-        _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
-        _data_ptr.len = ptr.int32.len
-        
-    else:
-        raise ValueError('Got unknown Dtype: {}'.format(ptr.tag))
-
-    _data_ptr.data_ptr = ptr
-    _data_ptr.freed_by_rust = False
-    series._data_ptr = _data_ptr
-    series.data_ptr = &series._data_ptr.data_ptr
-    return series
-
 cdef class _DataPtr:
     """
     Holds generic access to various data types from a DataPtr
     """
     # Flag to avoid double freeing, when inplace ops are done in rust, the original
     # data is consumed and freed simultaneously
-    cdef bool freed_by_rust
+    cdef bool is_owner
 
     # Possible array pointers for different dtypes
     cdef double* vec_ptr_float64
@@ -65,6 +36,28 @@ cdef class _DataPtr:
     cdef readonly view.array array_view
     cdef readonly int len
     cdef DataPtr data_ptr
+
+    @staticmethod
+    cdef _DataPtr from_ptr(DataPtr ptr):
+        cdef _DataPtr _data_ptr
+        _data_ptr = _DataPtr()
+
+        if ptr.tag == Tag.Tag_Float64:
+            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr
+            _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
+            _data_ptr.len = ptr.float64.len
+
+        elif ptr.tag == Tag.Tag_Int32:
+            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr
+            _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
+            _data_ptr.len = ptr.int32.len
+
+        else:
+            raise ValueError('Got unknown Dtype: {}'.format(ptr.tag))
+
+        _data_ptr.data_ptr = ptr
+        _data_ptr.is_owner = True
+        return _data_ptr
 
     @staticmethod
     cdef _DataPtr from_ptr_ref(DataPtr *ptr):
@@ -85,13 +78,13 @@ cdef class _DataPtr:
         else:
             raise ValueError('Got unknown Dtype: {}'.format(ptr[0].tag))
 
-        _data_ptr.freed_by_rust = True
+        _data_ptr.is_owner = False
 
         return _data_ptr
 
 
     def __dealloc__(self):
-        if not self.freed_by_rust:
+        if self.is_owner:
             if self.vec_ptr_float64 != NULL or \
                     self.vec_ptr_int32 != NULL:
                 free_data(self.data_ptr)
@@ -148,8 +141,10 @@ cdef class LumberJackSeries:
 
         # If this was in inplace op, rust has already consumed the data, avoid double free
         if inplace:
-            self._data_ptr.freed_by_rust = True
-        return create_lj_series_from_data_ptr(ptr)
+            self._data_ptr.is_owner = False
+        series = LumberJackSeries()
+        series._data_ptr = _DataPtr.from_ptr(ptr)
+        return series
 
     def __mul__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'mul', False)
@@ -171,7 +166,10 @@ cdef class LumberJackSeries:
         This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
         """
         cdef DataPtr ptr = ops.arange(start, stop, DType.Int32)
-        return create_lj_series_from_data_ptr(ptr)
+        cdef LumberJackSeries series = LumberJackSeries()
+        series._data_ptr = _DataPtr.from_ptr(ptr)
+        series.data_ptr = &series._data_ptr.data_ptr
+        return series
 
     def mean(self):
         cdef double avg
@@ -180,12 +178,15 @@ cdef class LumberJackSeries:
 
     def sum(self):
         cdef DataPtr ptr = ops.sum(self._data_ptr.data_ptr)
-        cdef LumberJackSeries series = create_lj_series_from_data_ptr(ptr)
+        series = LumberJackSeries()
+        series._data_ptr = _DataPtr.from_ptr(ptr)
         return series._data_ptr.array_view[0]
 
     def cumsum(self):
         cdef DataPtr ptr = ops.cumsum(self._data_ptr.data_ptr)
-        return create_lj_series_from_data_ptr(ptr)
+        series = LumberJackSeries()
+        series._data_ptr = _DataPtr.from_ptr(ptr)
+        return series
 
     def to_cython_array_view(self):
         """
