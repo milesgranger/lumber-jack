@@ -1,14 +1,19 @@
-# lumber-jack
+![](logo.png)
+
+---
 
 [![Build Status](https://travis-ci.org/milesgranger/lumber-jack.svg?branch=master)](https://travis-ci.org/milesgranger/lumber-jack)
 
 ---
 
-First and foremost: This is a package I'm using to refine my craft using Python, Cython 
-and Rust together in a high-performance fashion. This package is in Alpha and in no-way
-can you expect this to be functional or reliable.
+First and foremost: This is a project I'm using to refine my craft utilizing Python, Cython 
+and Rust together in a high-performance and efficient fashion. Aimed at replacing the core analysis 
+functionality found in Pandas; only _really_ fast and memory efficient. 
 
-### The goal:
+
+*This package is in Alpha and in no-way can you expect this to be functional or reliable.*
+
+### Project outlook *(...the long story)*:
 
 The _(long term)_ goal for this project is to provide a light-weight alternative to
 the fantastic `pandas`. I love and use pandas all the time, so this is what has 

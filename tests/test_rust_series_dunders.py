@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesDundersTestCase(unittest.TestCase):
     """
-    Test double under impls.
+    Test dunder impls.
     """
 
     def test_indexing_getitem(self):
