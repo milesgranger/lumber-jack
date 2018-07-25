@@ -21,16 +21,37 @@ class RustSeriesTestCase(unittest.TestCase):
         lj_series = lj.Series.arange(0, 10000)
         def function():
             return 'hello'
+        variable = 'hello'
         print('shipping this function: {}'.format(function))
-        result = lj_series.map(function)
+        result = lj_series.map(lambda: variable)
         logger.debug('Result from .map() -> {}'.format(result))
 
     def test_series_pickle(self):
+        """
+        Test pickling of Series object.
+        """
         lj_series = lj.Series.arange(0, 10)
         pkl = pickle.dumps(lj_series)
         _unpickled_series_view = pickle.loads(pkl)
         logger.debug('Original: {}, Unpickled result: {}'.format(lj_series.to_numpy(), _unpickled_series_view.to_numpy()))
+
+        # Test they are the same length and sum to the same...
         self.assertEqual(len(lj_series), len(_unpickled_series_view))
+        self.assertEqual(lj_series.sum(), _unpickled_series_view.sum())
+
+        # Test deleting the pickled series does not remove the data from the original
+        # As the pickled one does not own the data
+        orig_sum = lj_series.sum()
+        del _unpickled_series_view
+        self.assertEqual(lj_series.sum(), orig_sum)
+
+        # Test creating a copy via pickle, then deleting the original causes means the pickled series is no longer valid
+        # TODO: This should really raise an error; instead it accesses the wrong memory giving wrong sum
+        pkl = pickle.dumps(lj_series)
+        _unpickled_series_view = pickle.loads(pkl)
+        self.assertEqual(_unpickled_series_view.sum(), lj_series.sum())
+        del lj_series
+        self.assertNotEqual(_unpickled_series_view.sum(), orig_sum)
 
     def test_mean(self):
         """

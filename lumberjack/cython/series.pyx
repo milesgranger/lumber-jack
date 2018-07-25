@@ -8,12 +8,10 @@ import pandas as pd
 
 cimport numpy as np
 
-from libc.stdlib cimport malloc
-from libc.string cimport strcpy, strlen, memcpy
+from libc.string cimport memcpy
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 from libcpp cimport bool
-from libcpp.string cimport string
 from cython cimport view
 from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag
 cimport lumberjack.cython.operators as ops
@@ -80,6 +78,7 @@ cdef class _DataPtr:
         else:
             raise ValueError('Got unknown Dtype: {}'.format(ptr[0].tag))
 
+        _data_ptr.data_ptr = ptr[0]
         _data_ptr.is_owner = False
 
         return _data_ptr
@@ -123,6 +122,7 @@ cdef class LumberJackSeries(object):
     cpdef map(self, func):
         cdef bytes  func_pickled = cloudpickle.dumps(func)
         cdef np.ndarray array = np.fromstring(func_pickled, dtype=np.uint8)
+
         if not array.flags['C_CONTIGUOUS']:
             array = np.ascontiguousarray(array) # Makes a contiguous copy of the numpy array.
 
