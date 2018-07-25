@@ -19,7 +19,7 @@ fn call_python_func(function: CString) -> PyResult<()> {
     locals.set_item("os", py.import("os")?)?;
     locals.set_item("cloudpickle", py.import("cloudpickle")?)?;
     locals.set_item("pickled_func", Some(py_bytes))?;
-    py.run("print(locals())\nfunc = cloudpickle.loads(bytes(pickled_func))\nprint(func())",  None, Some(&locals))?;
+    py.run("func = cloudpickle.loads(bytes(pickled_func))\nprint(func())",  None, Some(&locals))?;
 
     Ok(())
 }

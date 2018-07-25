@@ -234,6 +234,15 @@ cdef class LumberJackSeries(object):
         #series = create_lumberjack_series_from_ptr(series_ptr)
         #return series
 
+    def __delitem__(self, key):
+        raise NotImplementedError('Unable to delete individual elements right now!')
+
+    def __getitem__(self, item):
+        return self._data_ptr.array_view[item]
+
+    def __setitem__(self, key, value):
+        raise NotImplementedError('Unable to set individual elements right now!')
+
     def __repr__(self):
         return 'LumberJackSeries(length: {})'.format(self._data_ptr.len)
 
