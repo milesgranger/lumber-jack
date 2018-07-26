@@ -124,6 +124,17 @@ cdef class LumberJackSeries(object):
         memcpy(self.data_ptr, <char *>data, sizeof(DataPtr))
         self._data_ptr = _DataPtr.from_ptr_ref(self.data_ptr)
 
+    cpdef astype(self, type dtype):
+        cdef DType _dtype
+        if dtype == float:
+            _dtype = DType.Float64
+        else:
+            raise ValueError('DType of "{}" not supported, please file an issue! :)'.format(dtype))
+        ptr =  ops.astype(self._data_ptr.data_ptr, DType.Float64)
+        series = LumberJackSeries()
+        series._data_ptr = _DataPtr.from_ptr(ptr)
+        return series
+
 
     cpdef map(self, func):
         cdef bytes  func_pickled = cloudpickle.dumps(func)

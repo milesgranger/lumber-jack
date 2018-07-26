@@ -4,7 +4,7 @@ use std::mem;
 mod operators;
 pub mod map;
 
-use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, DataElement};
+use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, DataElement, AsType};
 pub use series::operators::*;
 
 
@@ -28,6 +28,16 @@ pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
                 ptr
             }
         };
+    ptr
+}
+
+///
+#[no_mangle]
+pub extern "C" fn astype(ptr: DataPtr, dtype: DType) -> DataPtr {
+    let data = from_data_ptr(ptr);
+    let new_data = data.astype(dtype);
+    let ptr = into_data_ptr(new_data);
+    mem::forget(data);
     ptr
 }
 

@@ -14,7 +14,7 @@ fn call_python_func(function: CString) -> PyResult<()> {
 
     let locals = PyDict::new(py);
     let py_bytes = PyByteArray::new(py, function.as_bytes());
-    println!("bytes: {:?}", &py_bytes);
+    //println!("bytes: {:?}", &py_bytes);
     locals.set_item("os", py.import("os")?)?;
     locals.set_item("cloudpickle", py.import("cloudpickle")?)?;
     locals.set_item("pickled_func", Some(py_bytes))?;
@@ -26,10 +26,10 @@ fn call_python_func(function: CString) -> PyResult<()> {
 #[no_mangle]
 pub extern "C" fn series_map(data_ptr: DataPtr, func_ptr: *mut u8, len: u32) -> f64 {
     let vec = unsafe { Vec::from_raw_parts(func_ptr, len as usize, len as usize) };
-    println!("Got vector of: {:?}", &vec);
+    //println!("Got vector of: {:?}", &vec);
 
     let func = unsafe { CString::from_vec_unchecked(vec) };
-    println!("Got func bytes of: {:?}", &func);
+    //println!("Got func bytes of: {:?}", &func);
 
     let _data = from_data_ptr(data_ptr);
 

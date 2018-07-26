@@ -17,12 +17,18 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
+    def test_astype(self):
+        """Test converting series from one type to another"""
+        int_series = lj.Series.arange(0, 5)
+        float_series = int_series.astype(float)
+        self.assertEqual(int_series.to_numpy().dtype, np.int32)
+        self.assertEqual(float_series.to_numpy().dtype, np.float64)
+
     def test_series_map(self):
         lj_series = lj.Series.arange(0, 10000)
         def function():
             return 'hello'
         variable = 'hello'
-        print('shipping this function: {}'.format(function))
         result = lj_series.map(lambda: variable)
         logger.debug('Result from .map() -> {}'.format(result))
 

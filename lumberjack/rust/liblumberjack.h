@@ -65,6 +65,9 @@ DataPtr add_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 // Create Series from arange and pass back as DataPtr
 DataPtr arange(int32_t start, int32_t stop, DType dtype);
 
+//
+DataPtr astype(DataPtr ptr, DType dtype);
+
 DataPtr cumsum(DataPtr data_ptr);
 
 // Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
