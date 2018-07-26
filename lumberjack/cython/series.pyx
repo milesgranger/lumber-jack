@@ -252,7 +252,7 @@ cdef class LumberJackSeries(object):
         elif self._data_ptr.dtype == DType.Int32:
             value = np.int32(value)
         else:
-            raise TypeError('Series assigned unknown data type: {}'.format(self._data_ptr.dtype))
+            raise ValueError('Series assigned unknown data type: {}'.format(self._data_ptr.dtype))
         self._data_ptr.array_view[idx] = value
 
 

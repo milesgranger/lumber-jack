@@ -34,7 +34,7 @@ class RustSeriesDundersTestCase(unittest.TestCase):
         self.assertEqual(series[0], 10)
 
         # Test adding string to int32 series raises a TypeError
-        with self.assertRaises(TypeError):
+        with self.assertRaises(ValueError):
             series[0] = 'String does not belong in this int32 series!'
 
     def test_sum(self):
