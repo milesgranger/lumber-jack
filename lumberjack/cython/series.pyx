@@ -13,7 +13,7 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 from libcpp cimport bool
 from cython cimport view
-from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag
+from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify
 cimport lumberjack.cython.operators as ops
 
 logger = logging.getLogger(__name__)
@@ -27,6 +27,8 @@ cdef class _DataPtr:
     # Flag to avoid double freeing, when inplace ops are done in rust, the original
     # data is consumed and freed simultaneously
     cdef bool is_owner
+
+    cdef DType dtype
 
     # Possible array pointers for different dtypes
     cdef double* vec_ptr_float64
@@ -43,11 +45,13 @@ cdef class _DataPtr:
         _data_ptr = _DataPtr()
 
         if ptr.tag == Tag.Tag_Float64:
+            _data_ptr.dtype = DType.Float64
             _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr
             _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
             _data_ptr.len = ptr.float64.len
 
         elif ptr.tag == Tag.Tag_Int32:
+            _data_ptr.dtype = DType.Int32
             _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr
             _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
             _data_ptr.len = ptr.int32.len
@@ -66,11 +70,13 @@ cdef class _DataPtr:
         _data_ptr = _DataPtr()
 
         if ptr[0].tag == Tag.Tag_Float64:
+            _data_ptr.dtype = DType.Float64
             _data_ptr.vec_ptr_float64 = ptr[0].float64.data_ptr
             _data_ptr.array_view = <double[:ptr[0].float64.len]> ptr[0].float64.data_ptr
             _data_ptr.len = ptr[0].float64.len
 
         elif ptr[0].tag == Tag.Tag_Int32:
+            _data_ptr.dtype = DType.Int32
             _data_ptr.vec_ptr_int32 = ptr[0].int32.data_ptr
             _data_ptr.array_view = <np.int32_t[:ptr[0].int32.len]> ptr[0].int32.data_ptr
             _data_ptr.len = ptr[0].int32.len
@@ -237,11 +243,18 @@ cdef class LumberJackSeries(object):
     def __delitem__(self, key):
         raise NotImplementedError('Unable to delete individual elements right now!')
 
-    def __getitem__(self, item):
-        return self._data_ptr.array_view[item]
+    def __getitem__(self, idx):
+        return self._data_ptr.array_view[idx]
 
-    def __setitem__(self, key, value):
-        raise NotImplementedError('Unable to set individual elements right now!')
+    def __setitem__(self, idx, value):
+        if self._data_ptr.dtype == DType.Float64:
+            value = np.float64(value)
+        elif self._data_ptr.dtype == DType.Int32:
+            value = np.int32(value)
+        else:
+            raise TypeError('Series assigned unknown data type: {}'.format(self._data_ptr.dtype))
+        self._data_ptr.array_view[idx] = value
+
 
     def __repr__(self):
         return 'LumberJackSeries(length: {})'.format(self._data_ptr.len)

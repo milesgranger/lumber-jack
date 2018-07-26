@@ -24,6 +24,14 @@ pub enum Data {
     Int32(Vec<i32>)
 }
 
+/// Container for individual item
+#[derive(Debug)]
+#[repr(C)]
+pub enum DataElement {
+    Float64(f64),
+    Int32(i32)
+}
+
 pub trait Length {
     fn len(&self) -> usize;
 }

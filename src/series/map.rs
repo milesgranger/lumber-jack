@@ -1,8 +1,7 @@
-use libc::c_char;
+
 use std::mem;
 use std::ffi::CString;
 use pyo3::prelude::*;
-use pyo3::ffi;
 
 
 use containers::{DataPtr, from_data_ptr};
@@ -11,7 +10,7 @@ fn call_python_func(function: CString) -> PyResult<()> {
     let gil = Python::acquire_gil();
     let py = gil.python();
     let sys = py.import("sys")?;
-    let version: String = sys.get("version")?.extract()?;
+    let _version: String = sys.get("version")?.extract()?;
 
     let locals = PyDict::new(py);
     let py_bytes = PyByteArray::new(py, function.as_bytes());

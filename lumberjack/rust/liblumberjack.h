@@ -34,6 +34,28 @@ struct DataPtr {
   };
 };
 
+// Container for individual item
+struct DataElement {
+  enum class Tag {
+    Float64,
+    Int32,
+  };
+
+  struct Float64_Body {
+    double _0;
+  };
+
+  struct Int32_Body {
+    int32_t _0;
+  };
+
+  Tag tag;
+  union {
+    Float64_Body float64;
+    Int32_Body int32;
+  };
+};
+
 extern "C" {
 
 /* Binding from Rust to Cython  */
@@ -55,6 +77,9 @@ DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 double series_map(DataPtr data_ptr, uint8_t *func_ptr, uint32_t len);
 
 DataPtr sum(DataPtr data_ptr);
+
+// Set an individual item on an existing vec
+void verify(DataPtr data_ptr);
 
 } // extern "C"
 

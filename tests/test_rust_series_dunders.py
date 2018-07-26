@@ -20,6 +20,23 @@ class RustSeriesDundersTestCase(unittest.TestCase):
         self.assertEqual(series[0], 0)
         self.assertEqual(series[-1], 4)
 
+    def test_indexing_setitem(self):
+        """Depends on __setitem__"""
+        series = lj.Series.arange(0, 5)
+
+        # Test basic capability
+        self.assertEqual(series[0], 0)
+        series[0] = 1
+        self.assertEqual(series[0], 1)
+
+        # Test adding float to Int32, should convert any decimal to it's base integer value as numpy does.
+        series[0] = 10.9
+        self.assertEqual(series[0], 10)
+
+        # Test adding string to int32 series raises a TypeError
+        with self.assertRaises(TypeError):
+            series[0] = 'String does not belong in this int32 series!'
+
     def test_sum(self):
         """Depends on __iter__"""
         lj_series = lj.Series.arange(0, 5)

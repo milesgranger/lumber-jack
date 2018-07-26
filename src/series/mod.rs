@@ -1,9 +1,10 @@
 #![allow(dead_code)]
 
+use std::mem;
 mod operators;
 pub mod map;
 
-use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr};
+use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, DataElement};
 pub use series::operators::*;
 
 
@@ -28,6 +29,14 @@ pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
             }
         };
     ptr
+}
+
+/// Set an individual item on an existing vec
+#[no_mangle]
+pub extern "C" fn verify(data_ptr: DataPtr) {
+    let data = from_data_ptr(data_ptr.clone());
+    println!("Got element: {:?}", &data);
+    mem::forget(data);
 }
 
 /// Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
