@@ -13,5 +13,7 @@ cdef extern from "./../rust/liblumberjack.h":
     double  mean(DataPtr ptr)
     DataPtr multiply_by_scalar(DataPtr ptr, double scalar, bool inplace)
     DataPtr add_by_scalar(DataPtr ptr, double scalar, bool inplace)
-    double  series_map(DataPtr ptr, np.uint8_t * func_ptr, np.uint32_t len)
+    double  series_map(np.uint8_t *source_ptr, np.uint32_t source_len,
+                       np.uint8_t *target_ptr, np.uint32_t target_len,
+                       np.uint8_t *func_ptr,   np.uint32_t func_len)
     DataPtr astype(DataPtr ptr, DType dtype)

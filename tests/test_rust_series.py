@@ -26,10 +26,8 @@ class RustSeriesTestCase(unittest.TestCase):
 
     def test_series_map(self):
         lj_series = lj.Series.arange(0, 10000)
-        def function():
-            return 'hello'
-        variable = 'hello'
-        result = lj_series.map(lambda: variable)
+        variable = 2.0
+        result = lj_series.map(lambda: variable, out_dtype=float)
         logger.debug('Result from .map() -> {}'.format(result))
 
     def test_series_pickle(self):

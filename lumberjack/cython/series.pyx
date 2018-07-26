@@ -135,16 +135,42 @@ cdef class LumberJackSeries(object):
         series._data_ptr = _DataPtr.from_ptr(ptr)
         return series
 
+    cdef np.ndarray _convert_byte_string_to_array(self, bytes string):
+        cdef np.ndarray byte_array = np.fromstring(string, dtype=np.uint8)
 
-    cpdef map(self, func):
+        if not byte_array.flags['C_CONTIGUOUS']:
+            byte_array = np.ascontiguousarray(byte_array) # Makes a contiguous copy of the numpy array.
+
+        return byte_array
+
+
+    cpdef map(self, func, type out_dtype):
+
+        # Create a copy series of the type expected, and pickle it.
+        series = LumberJackSeries.arange(0, len(self))
+
+        # Pickle the function and convert to numpy u8 array
         cdef bytes  func_pickled = cloudpickle.dumps(func)
-        cdef np.ndarray array = np.fromstring(func_pickled, dtype=np.uint8)
+        cdef np.ndarray func_bytes_array = self._convert_byte_string_to_array(func_pickled)
+        cdef np.uint8_t[::1] func_bytes = func_bytes_array
 
-        if not array.flags['C_CONTIGUOUS']:
-            array = np.ascontiguousarray(array) # Makes a contiguous copy of the numpy array.
+        # Pickle target series
+        cdef bytes target_series_pkl = cloudpickle.dumps(series)
+        cdef np.ndarray target_series_bytes_array = self._convert_byte_string_to_array(target_series_pkl)
+        cdef np.uint8_t[::1] target_series_bytes = target_series_bytes_array
 
-        cdef np.uint8_t[::1] arr_view = array
-        return ops.series_map(self._data_ptr.data_ptr, &arr_view[0], array.shape[0])
+        # Pickle source series, that function will be applied against (self)
+        cdef bytes source_series_pkl = cloudpickle.dumps(self)
+        cdef np.ndarray source_series_bytes_array = self._convert_byte_string_to_array(source_series_pkl)
+        cdef np.uint8_t[::1] source_series_bytes = source_series_bytes_array
+
+        # Apply mapping in rust
+        ops.series_map(&source_series_bytes[0], source_series_bytes_array.shape[0],
+                       &target_series_bytes[0], target_series_bytes_array.shape[0],
+                       &func_bytes[0], func_bytes_array.shape[0])
+
+        # Return target series
+        return series
 
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
         """
@@ -181,11 +207,19 @@ cdef class LumberJackSeries(object):
         return self
 
     @staticmethod
-    def arange(int start, int stop):
+    def arange(int start, int stop, type dtype=int):
         """
         This is ~2x faster than numpy's arange (tested 100000 times with range 0-100000)
         """
-        cdef DataPtr ptr = ops.arange(start, stop, DType.Int32)
+        cdef DType _dtype
+        if dtype == float:
+            _dtype = DType.Float64
+        elif dtype == int:
+            _dtype = DType.Int32
+        else:
+            raise ValueError('dtype "{}" not supported, please submit an issue on github!'.format(dtype))
+
+        cdef DataPtr ptr = ops.arange(start, stop, _dtype)
         cdef LumberJackSeries series = LumberJackSeries()
         series._data_ptr = _DataPtr.from_ptr(ptr)
         series.data_ptr = &series._data_ptr.data_ptr

@@ -4,7 +4,7 @@ use std::mem;
 mod operators;
 pub mod map;
 
-use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, DataElement, AsType};
+use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, AsType};
 pub use series::operators::*;
 
 
