@@ -84,7 +84,7 @@ double series_map(uint8_t *source_ptr,
                   uint8_t *func_ptr,
                   uint32_t func_len);
 
-DataPtr sum(DataPtr data_ptr);
+double sum(DataPtr data_ptr);
 
 // Set an individual item on an existing vec
 void verify(DataPtr data_ptr);

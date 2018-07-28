@@ -96,6 +96,7 @@ cdef class _DataPtr:
                     self.vec_ptr_int32 != NULL:
                 free_data(self.data_ptr)
 
+
 cpdef object build(bytes data):
     series = LumberJackSeries()
     print('building objet!')
@@ -113,7 +114,9 @@ cdef class LumberJackSeries(object):
 
     def __dealloc__(self):
         if not self._data_ptr.is_owner and self.data_ptr != NULL:
+            print('Attempting to free from cython!')
             PyMem_Free(self.data_ptr)
+            print('done')
 
     def __cinit__(self):
         self.data_ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr))
@@ -158,7 +161,7 @@ cdef class LumberJackSeries(object):
     cpdef map(self, func, type out_dtype):
 
         # Create a copy series of the type expected, and pickle it.
-        series = LumberJackSeries.arange(0, len(self))
+        series = self.astype(out_dtype)
         series._data_ptr.is_owner = False
 
         # Pickle the function and convert to numpy u8 array
@@ -247,11 +250,8 @@ cdef class LumberJackSeries(object):
         return avg
 
     def sum(self):
-        cdef DataPtr ptr = ops.sum(self._data_ptr.data_ptr)
-        series = LumberJackSeries()
-        series._data_ptr = _DataPtr.from_ptr(ptr)
-        series.data_ptr = &series._data_ptr.data_ptr
-        return series._data_ptr.array_view[0]
+        cdef double result = ops.sum(self._data_ptr.data_ptr)
+        return result
 
     def cumsum(self):
         cdef DataPtr ptr = ops.cumsum(self._data_ptr.data_ptr)
