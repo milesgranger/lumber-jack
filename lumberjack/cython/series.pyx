@@ -96,7 +96,11 @@ cdef class _DataPtr:
                     self.vec_ptr_int32 != NULL:
                 free_data(self.data_ptr)
 
-
+cpdef object build(bytes data):
+    series = LumberJackSeries()
+    print('building objet!')
+    series._set_state(data)
+    return series
 
 cdef class LumberJackSeries(object):
     """
@@ -107,22 +111,31 @@ cdef class LumberJackSeries(object):
     cdef _DataPtr _data_ptr
     cdef DataPtr *data_ptr
 
-    def __getstate__(self):
-        return (self._get_state(),)
+    def __dealloc__(self):
+        if not self._data_ptr.is_owner:
+            PyMem_Free(self.data_ptr)
 
-    def __setstate__(self, state):
-        self._set_state(*state)
-
-    cpdef bytes _get_state(self):
-        return <bytes>(<char *>self.data_ptr)[:sizeof(DataPtr)]
-
-    cpdef void _set_state(self, bytes data):
-        PyMem_Free(self.data_ptr)
+    def __cinit__(self):
         self.data_ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr))
         if not self.data_ptr:
             raise MemoryError()
-        memcpy(self.data_ptr, <char *>data, sizeof(DataPtr))
+
+    def __reduce__(self):
+        data = self._get_state()
+        return (build, (data,))
+
+    cpdef bytes _get_state(self):
+        ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr))
+        memcpy(ptr, self.data_ptr, sizeof(DataPtr))
+        return <bytes>(<char *>ptr)[:sizeof(DataPtr)]
+
+    cpdef void _set_state(self, bytes data):
+        print('Setting state!')
+        memcpy(self.data_ptr, <char*>data, sizeof(DataPtr))
+        print('Copied data into data pointer')
         self._data_ptr = _DataPtr.from_ptr_ref(self.data_ptr)
+        print('Created _data_ptr')
+        self._data_ptr.is_owner = False
 
     cpdef astype(self, type dtype):
         cdef DType _dtype
