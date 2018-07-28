@@ -112,7 +112,7 @@ cdef class LumberJackSeries(object):
     cdef DataPtr *data_ptr
 
     def __dealloc__(self):
-        if not self._data_ptr.is_owner:
+        if not self._data_ptr.is_owner and self.data_ptr != NULL:
             PyMem_Free(self.data_ptr)
 
     def __cinit__(self):
@@ -125,16 +125,13 @@ cdef class LumberJackSeries(object):
         return (build, (data,))
 
     cpdef bytes _get_state(self):
-        ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr))
-        memcpy(ptr, self.data_ptr, sizeof(DataPtr))
-        return <bytes>(<char *>ptr)[:sizeof(DataPtr)]
+        return <bytes>(<char *>self.data_ptr)[:sizeof(DataPtr)]
 
     cpdef void _set_state(self, bytes data):
-        print('Setting state!')
+        PyMem_Free(self.data_ptr)
+        self.data_ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr))
         memcpy(self.data_ptr, <char*>data, sizeof(DataPtr))
-        print('Copied data into data pointer')
-        self._data_ptr = _DataPtr.from_ptr_ref(self.data_ptr)
-        print('Created _data_ptr')
+        self._data_ptr = _DataPtr.from_ptr(self.data_ptr[0])
         self._data_ptr.is_owner = False
 
     cpdef astype(self, type dtype):
@@ -146,6 +143,7 @@ cdef class LumberJackSeries(object):
         ptr =  ops.astype(self._data_ptr.data_ptr, DType.Float64)
         series = LumberJackSeries()
         series._data_ptr = _DataPtr.from_ptr(ptr)
+        series.data_ptr = &series._data_ptr.data_ptr
         return series
 
     cdef np.ndarray _convert_byte_string_to_array(self, bytes string):
@@ -161,6 +159,7 @@ cdef class LumberJackSeries(object):
 
         # Create a copy series of the type expected, and pickle it.
         series = LumberJackSeries.arange(0, len(self))
+        series._data_ptr.is_owner = False
 
         # Pickle the function and convert to numpy u8 array
         cdef bytes  func_pickled = cloudpickle.dumps(func)
@@ -183,6 +182,7 @@ cdef class LumberJackSeries(object):
                        &func_bytes[0], func_bytes_array.shape[0])
 
         # Return target series
+        series._data_ptr.is_owner = True
         return series
 
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
@@ -198,25 +198,28 @@ cdef class LumberJackSeries(object):
         else:
             raise ValueError('Unknown operation: {}'.format(op))
 
-        # If this was in inplace op, rust has already consumed the data, avoid double free
         if inplace:
             self._data_ptr.is_owner = False
-        series = LumberJackSeries()
-        series._data_ptr = _DataPtr.from_ptr(ptr)
-        return series
+            self._data_ptr = _DataPtr.from_ptr(ptr)
+            self.data_ptr = &self._data_ptr.data_ptr
+        else:
+            series = LumberJackSeries()
+            series._data_ptr = _DataPtr.from_ptr(ptr)
+            series.data_ptr = &series._data_ptr.data_ptr
+            return series
 
     def __mul__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'mul', False)
 
     def __imul__(self, other):
-        self = self._scalar_arithmetic_factory(float(other), 'mul', True)
+        self._scalar_arithmetic_factory(float(other), 'mul', True)
         return self
 
     def __add__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'add', False)
 
     def __iadd__(self, other):
-        self =  self._scalar_arithmetic_factory(float(other), 'add', True)
+        self._scalar_arithmetic_factory(float(other), 'add', True)
         return self
 
     @staticmethod
@@ -247,12 +250,14 @@ cdef class LumberJackSeries(object):
         cdef DataPtr ptr = ops.sum(self._data_ptr.data_ptr)
         series = LumberJackSeries()
         series._data_ptr = _DataPtr.from_ptr(ptr)
+        series.data_ptr = &series._data_ptr.data_ptr
         return series._data_ptr.array_view[0]
 
     def cumsum(self):
         cdef DataPtr ptr = ops.cumsum(self._data_ptr.data_ptr)
         series = LumberJackSeries()
         series._data_ptr = _DataPtr.from_ptr(ptr)
+        series.data_ptr = &series._data_ptr.data_ptr
         return series
 
     def to_cython_array_view(self):
