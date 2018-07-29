@@ -27,10 +27,10 @@ class RustSeriesTestCase(unittest.TestCase):
     def test_series_map(self):
         lj_series = lj.Series.arange(0, 10000)
         variable = 2.0
-        result = lj_series.map(lambda: variable, out_dtype=float)
-        result1 = lj_series.map(lambda: 2.0, out_dtype=float)
-        result2 = lj_series.map(lambda: 3.0, out_dtype=float)
-        logger.debug('Result from .map() -> {}'.format(result))
+        result = lj_series.map(lambda v: variable, out_dtype=float)
+        result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
+        result2 = lj_series.map(lambda v: 30, out_dtype=float)
+        #logger.debug('Result from .map() -> {}'.format(result))
 
 
     def test_mean(self):
