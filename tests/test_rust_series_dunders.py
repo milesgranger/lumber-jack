@@ -48,7 +48,7 @@ class RustSeriesDundersTestCase(unittest.TestCase):
         self.assertEqual(result.sum(), 15)
 
         # Speed Test
-        #run_series_method_tests('series + 1')
+        run_series_method_tests('series + 1')
 
     def test_add_by_scalar_inplace(self):
         lj_series = lj.Series.arange(0, 5)
@@ -56,7 +56,7 @@ class RustSeriesDundersTestCase(unittest.TestCase):
         self.assertEqual(lj_series.sum(), 15)
 
         # Speed Test
-        #run_series_method_tests('series += 1')
+        run_series_method_tests('series += 1')
 
     def test_multiply_by_scalar(self):
         lj_series = lj.Series.arange(0, 5)
@@ -64,7 +64,7 @@ class RustSeriesDundersTestCase(unittest.TestCase):
         self.assertEqual(result.sum(), 20)
 
         # Speed Test
-        #run_series_method_tests('series * 2')
+        run_series_method_tests('series * 2')
 
     def test_multiply_by_scalar_inplace(self):
         lj_series = lj.Series.arange(0, 5)
@@ -72,7 +72,7 @@ class RustSeriesDundersTestCase(unittest.TestCase):
         self.assertEqual(lj_series.sum(), 20)
 
         # Speed Test
-        #run_series_method_tests('series *= 2')
+        run_series_method_tests('series *= 2')
 
     def test_len(self):
         """
