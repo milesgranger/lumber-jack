@@ -100,7 +100,6 @@ cdef class _DataPtr:
 
 cpdef object build(bytes data):
     series = LumberJackSeries()
-    print('building objet!')
     series._set_state(data)
     return series
 
