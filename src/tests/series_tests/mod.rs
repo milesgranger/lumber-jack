@@ -22,12 +22,7 @@ fn sum() {
     let vec = vec![1, 2, 3, 4];
     let ptr = into_data_ptr(Data::Int32(vec));
     let result = series::sum(ptr);
-    if let DataPtr::Int32 { data_ptr, len } = result {
-        let v = unsafe { Vec::from_raw_parts(data_ptr, len, len)};
-        assert_eq!(v.last().expect("Vector was empty!"), &10_i32)
-    } else {
-        panic!("Expected to get a DataPtr::Int32 but we did not!");
-    };
+    assert_eq!(result, 10_f64);
 
 }
 
