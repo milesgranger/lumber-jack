@@ -27,37 +27,11 @@ class RustSeriesTestCase(unittest.TestCase):
     def test_series_map(self):
         lj_series = lj.Series.arange(0, 10000)
         variable = 2.0
-        result = lj_series.map(lambda: variable, out_dtype=float)
-        result1 = lj_series.map(lambda: variable, out_dtype=float)
-        result2 = lj_series.map(lambda: variable, out_dtype=float)
-        logger.debug('Result from .map() -> {}'.format(result))
+        #result = lj_series.map(lambda: variable, out_dtype=float)
+        #result1 = lj_series.map(lambda: variable, out_dtype=float)
+        #result2 = lj_series.map(lambda: variable, out_dtype=float)
+        #logger.debug('Result from .map() -> {}'.format(result))
 
-    def test_series_pickle(self):
-        """
-        Test pickling of Series object.
-        """
-        lj_series = lj.Series.arange(0, 10)
-        pkl = pickle.dumps(lj_series)
-        _unpickled_series_view = pickle.loads(pkl)
-        logger.debug('Original: {}, Unpickled result: {}'.format(lj_series.to_numpy(), _unpickled_series_view.to_numpy()))
-
-        # Test they are the same length and sum to the same...
-        self.assertEqual(len(lj_series), len(_unpickled_series_view))
-        self.assertEqual(lj_series.sum(), _unpickled_series_view.sum())
-
-        # Test deleting the pickled series does not remove the data from the original
-        # As the pickled one does not own the data
-        orig_sum = lj_series.sum()
-        del _unpickled_series_view
-        self.assertEqual(lj_series.sum(), orig_sum)
-
-        # Test creating a copy via pickle, then deleting the original causes means the pickled series is no longer valid
-        # TODO: This should really raise an error; instead it accesses the wrong memory giving wrong sum
-        pkl = pickle.dumps(lj_series)
-        _unpickled_series_view = pickle.loads(pkl)
-        self.assertEqual(_unpickled_series_view.sum(), lj_series.sum())
-        del lj_series
-        self.assertNotEqual(_unpickled_series_view.sum(), orig_sum)
 
     def test_mean(self):
         """
@@ -104,8 +78,8 @@ class RustSeriesTestCase(unittest.TestCase):
         self.assertEqual(total, 6)
 
         # Speed test
-        #lj_time, pd_time, np_time = run_series_method_tests('series.sum()')
-        #self.assertLessEqual(lj_time, np_time, msg='Expected LumberJack .sum() to be faster but it was not!')
+        lj_time, pd_time, np_time = run_series_method_tests('series.sum()')
+        self.assertLessEqual(lj_time, np_time, msg='Expected LumberJack .sum() to be faster but it was not!')
 
     def test_arange(self):
         """
@@ -124,9 +98,9 @@ class RustSeriesTestCase(unittest.TestCase):
                                 number=10000,
                                 setup='import numpy as np')
         logger.debug('.arange(0, 10000) speed: Avg LumberJack: {:4f}s -- Avg numpy: {:.4f}s'.format(lj_time, np_time))
-        #self.assertLess(lj_time, np_time,
-        #                'Expected LumberJack ({:.4f}) to be faster than numpy ({:.4f}), but it was not!'
-        #                .format(lj_time, np_time))
+        self.assertLess(lj_time, np_time,
+                        'Expected LumberJack ({:.4f}) to be faster than numpy ({:.4f}), but it was not!'
+                        .format(lj_time, np_time))
 
     def test_describe(self):
         """

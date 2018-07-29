@@ -7,10 +7,6 @@ import numpy as np
 import pandas as pd
 
 cimport numpy as np
-from cymem.cymem cimport Pool
-
-from libc.string cimport memcpy
-from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 from libcpp cimport bool
 from cython cimport view
@@ -32,13 +28,14 @@ cdef class _DataPtr:
     cdef DType dtype
 
     # Possible array pointers for different dtypes
-    cdef double* vec_ptr_float64
-    cdef np.int32_t* vec_ptr_int32
+    cdef double     vec_ptr_float64
+    cdef np.int32_t vec_ptr_int32
 
     # Static attrs across all dtypes of a DataPtr object.
     cdef readonly view.array array_view
     cdef readonly int len
-    cdef DataPtr data_ptr
+    cdef DataPtr  data_ptr
+
 
     @staticmethod
     cdef _DataPtr from_ptr(DataPtr ptr):
@@ -47,13 +44,13 @@ cdef class _DataPtr:
 
         if ptr.tag == Tag.Tag_Float64:
             _data_ptr.dtype = DType.Float64
-            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr
+            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr[0]
             _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
             _data_ptr.len = ptr.float64.len
 
         elif ptr.tag == Tag.Tag_Int32:
             _data_ptr.dtype = DType.Int32
-            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr
+            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr[0]
             _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
             _data_ptr.len = ptr.int32.len
 
@@ -72,13 +69,13 @@ cdef class _DataPtr:
 
         if ptr[0].tag == Tag.Tag_Float64:
             _data_ptr.dtype = DType.Float64
-            _data_ptr.vec_ptr_float64 = ptr[0].float64.data_ptr
+            _data_ptr.vec_ptr_float64 = ptr[0].float64.data_ptr[0]
             _data_ptr.array_view = <double[:ptr[0].float64.len]> ptr[0].float64.data_ptr
             _data_ptr.len = ptr[0].float64.len
 
         elif ptr[0].tag == Tag.Tag_Int32:
             _data_ptr.dtype = DType.Int32
-            _data_ptr.vec_ptr_int32 = ptr[0].int32.data_ptr
+            _data_ptr.vec_ptr_int32 = ptr[0].int32.data_ptr[0]
             _data_ptr.array_view = <np.int32_t[:ptr[0].int32.len]> ptr[0].int32.data_ptr
             _data_ptr.len = ptr[0].int32.len
 
@@ -93,15 +90,8 @@ cdef class _DataPtr:
 
     def __dealloc__(self):
         if self.is_owner:
-            if self.vec_ptr_float64 != NULL or \
-                    self.vec_ptr_int32 != NULL:
-                free_data(self.data_ptr)
+            free_data(self.data_ptr)
 
-
-cpdef object build(bytes data):
-    series = LumberJackSeries()
-    series._set_state(data)
-    return series
 
 cdef class LumberJackSeries(object):
     """
@@ -110,24 +100,7 @@ cdef class LumberJackSeries(object):
     Some implementations of Numpy / Pandas functionality with bindings to Rust.
     """
     cdef _DataPtr _data_ptr
-    cdef Pool mem
 
-    def __cinit__(self):
-        self.mem = Pool()
-
-    def __reduce__(self):
-        data = self._get_state()
-        return (build, (data,))
-
-    cpdef bytes _get_state(self):
-        return <bytes>(<char *>&self._data_ptr.data_ptr)[:sizeof(DataPtr)]
-
-    cpdef void _set_state(self, bytes data):
-        data_ptr = <DataPtr*>self.mem.alloc(1, sizeof(DataPtr))
-        memcpy(data_ptr, <char*>data, sizeof(DataPtr))
-        cdef DataPtr ptr = copy_ptr(data_ptr)
-        self._data_ptr = _DataPtr.from_ptr(ptr)
-        self._data_ptr.is_owner = False
 
     cpdef astype(self, type dtype):
         cdef DType _dtype
@@ -153,30 +126,13 @@ cdef class LumberJackSeries(object):
 
         # Create a copy series of the type expected, and pickle it.
         series = self.astype(out_dtype)
-        series._data_ptr.is_owner = False
 
         # Pickle the function and convert to numpy u8 array
         cdef bytes  func_pickled = cloudpickle.dumps(func)
         cdef np.ndarray func_bytes_array = self._convert_byte_string_to_array(func_pickled)
         cdef np.uint8_t[::1] func_bytes = func_bytes_array
 
-        # Pickle target series
-        cdef bytes target_series_pkl = cloudpickle.dumps(series)
-        cdef np.ndarray target_series_bytes_array = self._convert_byte_string_to_array(target_series_pkl)
-        cdef np.uint8_t[::1] target_series_bytes = target_series_bytes_array
-
-        # Pickle source series, that function will be applied against (self)
-        cdef bytes source_series_pkl = cloudpickle.dumps(self)
-        cdef np.ndarray source_series_bytes_array = self._convert_byte_string_to_array(source_series_pkl)
-        cdef np.uint8_t[::1] source_series_bytes = source_series_bytes_array
-
-        # Apply mapping in rust
-        ops.series_map(&source_series_bytes[0], source_series_bytes_array.shape[0],
-                       &target_series_bytes[0], target_series_bytes_array.shape[0],
-                       &func_bytes[0], func_bytes_array.shape[0])
-
         # Return target series
-        series._data_ptr.is_owner = True
         return series
 
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):

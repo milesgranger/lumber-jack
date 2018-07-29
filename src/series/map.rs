@@ -16,7 +16,7 @@ fn call_python_func(source_series: CString, target_series: CString, function: CS
     locals.set_item("cloudpickle", py.import("cloudpickle")?)?;
     locals.set_item("pickled_func", Some(py_bytes))?;
     locals.set_item("source_series", Some(PyByteArray::new(py, source_series.as_bytes())))?;
-    py.run("func = cloudpickle.loads(bytes(pickled_func))\nsource_series = cloudpickle.loads(bytes(source_series))",  None, Some(&locals))?;
+    py.run("func = cloudpickle.loads(bytes(pickled_func))",  None, Some(&locals))?;
 
     Ok(())
 }
