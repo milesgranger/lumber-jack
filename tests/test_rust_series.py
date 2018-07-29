@@ -28,8 +28,8 @@ class RustSeriesTestCase(unittest.TestCase):
         lj_series = lj.Series.arange(0, 10000)
         variable = 2.0
         result = lj_series.map(lambda: variable, out_dtype=float)
-        #result1 = lj_series.map(lambda: variable, out_dtype=float)
-        #result2 = lj_series.map(lambda: variable, out_dtype=float)
+        result1 = lj_series.map(lambda: variable, out_dtype=float)
+        result2 = lj_series.map(lambda: variable, out_dtype=float)
         #logger.debug('Result from .map() -> {}'.format(result))
 
 

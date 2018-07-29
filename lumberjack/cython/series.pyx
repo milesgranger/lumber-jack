@@ -28,13 +28,16 @@ cdef class _DataPtr:
     cdef DType dtype
 
     # Possible array pointers for different dtypes
-    cdef double*     vec_ptr_float64
-    cdef np.int32_t* vec_ptr_int32
+    cdef double     vec_ptr_float64
+    cdef np.int32_t vec_ptr_int32
 
     # Static attrs across all dtypes of a DataPtr object.
     cdef readonly view.array array_view
     cdef readonly int len
     cdef DataPtr  data_ptr
+
+    def __cinit__(self):
+        self.is_owner = True
 
 
     @staticmethod
@@ -44,13 +47,13 @@ cdef class _DataPtr:
 
         if ptr.tag == Tag.Tag_Float64:
             _data_ptr.dtype = DType.Float64
-            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr
+            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr[0]
             _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
             _data_ptr.len = ptr.float64.len
 
         elif ptr.tag == Tag.Tag_Int32:
             _data_ptr.dtype = DType.Int32
-            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr
+            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr[0]
             _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
             _data_ptr.len = ptr.int32.len
 
@@ -64,7 +67,8 @@ cdef class _DataPtr:
 
     def __dealloc__(self):
         if self.is_owner:
-            free_data(self.data_ptr)
+            if &self.data_ptr != NULL:
+                free_data(self.data_ptr)
 
 
 cdef class LumberJackSeries(object):
@@ -98,15 +102,14 @@ cdef class LumberJackSeries(object):
 
     cpdef map(self, func, type out_dtype):
 
-        # Create a copy series of the type expected, and pickle it.
-        series = self.astype(out_dtype)
-
         # Pickle the function and convert to numpy u8 array
         cdef bytes  func_pickled = cloudpickle.dumps(func)
         cdef np.ndarray func_bytes_array = self._convert_byte_string_to_array(func_pickled)
         cdef np.uint8_t[::1] func_bytes = func_bytes_array
 
-        # Return target series
+        ptr = ops.series_map(&func_bytes[0], func_bytes_array.shape[0], self._data_ptr.data_ptr, DType.Float64)
+        series = LumberJackSeries()
+        series._data_ptr = _DataPtr.from_ptr(ptr)
         return series
 
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
@@ -125,10 +128,10 @@ cdef class LumberJackSeries(object):
         if inplace:
             self._data_ptr.is_owner = False
             self._data_ptr = _DataPtr.from_ptr(ptr)
-        else:
-            series = LumberJackSeries()
-            series._data_ptr = _DataPtr.from_ptr(ptr)
-            return series
+            return
+        series = LumberJackSeries()
+        series._data_ptr = _DataPtr.from_ptr(ptr)
+        return series
 
     def __mul__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'mul', False)
