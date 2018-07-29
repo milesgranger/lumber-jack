@@ -28,8 +28,8 @@ cdef class _DataPtr:
     cdef DType dtype
 
     # Possible array pointers for different dtypes
-    cdef double     vec_ptr_float64
-    cdef np.int32_t vec_ptr_int32
+    cdef double*     vec_ptr_float64
+    cdef np.int32_t* vec_ptr_int32
 
     # Static attrs across all dtypes of a DataPtr object.
     cdef readonly view.array array_view
@@ -44,13 +44,13 @@ cdef class _DataPtr:
 
         if ptr.tag == Tag.Tag_Float64:
             _data_ptr.dtype = DType.Float64
-            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr[0]
+            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr
             _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
             _data_ptr.len = ptr.float64.len
 
         elif ptr.tag == Tag.Tag_Int32:
             _data_ptr.dtype = DType.Int32
-            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr[0]
+            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr
             _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
             _data_ptr.len = ptr.int32.len
 
@@ -59,32 +59,6 @@ cdef class _DataPtr:
 
         _data_ptr.data_ptr = ptr
         _data_ptr.is_owner = True
-        return _data_ptr
-
-    @staticmethod
-    cdef _DataPtr from_ptr_ref(DataPtr *ptr):
-
-        cdef _DataPtr _data_ptr
-        _data_ptr = _DataPtr()
-
-        if ptr[0].tag == Tag.Tag_Float64:
-            _data_ptr.dtype = DType.Float64
-            _data_ptr.vec_ptr_float64 = ptr[0].float64.data_ptr[0]
-            _data_ptr.array_view = <double[:ptr[0].float64.len]> ptr[0].float64.data_ptr
-            _data_ptr.len = ptr[0].float64.len
-
-        elif ptr[0].tag == Tag.Tag_Int32:
-            _data_ptr.dtype = DType.Int32
-            _data_ptr.vec_ptr_int32 = ptr[0].int32.data_ptr[0]
-            _data_ptr.array_view = <np.int32_t[:ptr[0].int32.len]> ptr[0].int32.data_ptr
-            _data_ptr.len = ptr[0].int32.len
-
-        else:
-            raise ValueError('Got unknown Dtype: {}'.format(ptr[0].tag))
-
-        _data_ptr.data_ptr = ptr[0]
-        _data_ptr.is_owner = False
-
         return _data_ptr
 
 
