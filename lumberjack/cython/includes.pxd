@@ -63,3 +63,4 @@ cdef extern from "./../rust/liblumberjack.h":
     # Allow rust to remove a vector that it created and passed to Python
     void free_data(DataPtr ptr);
     void verify(DataPtr ptr);
+    DataPtr copy_ptr(DataPtr* ptr);

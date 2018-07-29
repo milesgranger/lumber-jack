@@ -12,6 +12,11 @@ pub use series::operators::*;
     Functions exposed to C which create lumberjack series or frees one.
 */
 
+#[no_mangle]
+pub extern "C" fn copy_ptr(ptr: &mut DataPtr) -> DataPtr {
+    ptr.clone()
+}
+
 /// Create Series from arange and pass back as DataPtr
 #[no_mangle]
 pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {

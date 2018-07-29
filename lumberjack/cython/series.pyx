@@ -7,13 +7,14 @@ import numpy as np
 import pandas as pd
 
 cimport numpy as np
+from cymem.cymem cimport Pool
 
 from libc.string cimport memcpy
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 
 from libcpp cimport bool
 from cython cimport view
-from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify
+from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify, copy_ptr
 cimport lumberjack.cython.operators as ops
 
 logger = logging.getLogger(__name__)
@@ -110,31 +111,23 @@ cdef class LumberJackSeries(object):
     Some implementations of Numpy / Pandas functionality with bindings to Rust.
     """
     cdef _DataPtr _data_ptr
-    cdef DataPtr *data_ptr
-
-    def __dealloc__(self):
-        if not self._data_ptr.is_owner and self.data_ptr != NULL:
-            print('Attempting to free from cython!')
-            PyMem_Free(self.data_ptr)
-            print('done')
+    cdef Pool mem
 
     def __cinit__(self):
-        self.data_ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr))
-        if not self.data_ptr:
-            raise MemoryError()
+        self.mem = Pool()
 
     def __reduce__(self):
         data = self._get_state()
         return (build, (data,))
 
     cpdef bytes _get_state(self):
-        return <bytes>(<char *>self.data_ptr)[:sizeof(DataPtr)]
+        return <bytes>(<char *>&self._data_ptr.data_ptr)[:sizeof(DataPtr)]
 
     cpdef void _set_state(self, bytes data):
-        PyMem_Free(self.data_ptr)
-        self.data_ptr = <DataPtr*>PyMem_Malloc(sizeof(DataPtr))
-        memcpy(self.data_ptr, <char*>data, sizeof(DataPtr))
-        self._data_ptr = _DataPtr.from_ptr(self.data_ptr[0])
+        data_ptr = <DataPtr*>self.mem.alloc(1, sizeof(DataPtr))
+        memcpy(data_ptr, <char*>data, sizeof(DataPtr))
+        cdef DataPtr ptr = copy_ptr(data_ptr)
+        self._data_ptr = _DataPtr.from_ptr(ptr)
         self._data_ptr.is_owner = False
 
     cpdef astype(self, type dtype):
@@ -146,7 +139,6 @@ cdef class LumberJackSeries(object):
         ptr =  ops.astype(self._data_ptr.data_ptr, DType.Float64)
         series = LumberJackSeries()
         series._data_ptr = _DataPtr.from_ptr(ptr)
-        series.data_ptr = &series._data_ptr.data_ptr
         return series
 
     cdef np.ndarray _convert_byte_string_to_array(self, bytes string):
@@ -204,11 +196,9 @@ cdef class LumberJackSeries(object):
         if inplace:
             self._data_ptr.is_owner = False
             self._data_ptr = _DataPtr.from_ptr(ptr)
-            self.data_ptr = &self._data_ptr.data_ptr
         else:
             series = LumberJackSeries()
             series._data_ptr = _DataPtr.from_ptr(ptr)
-            series.data_ptr = &series._data_ptr.data_ptr
             return series
 
     def __mul__(self, other):
@@ -241,7 +231,6 @@ cdef class LumberJackSeries(object):
         cdef DataPtr ptr = ops.arange(start, stop, _dtype)
         cdef LumberJackSeries series = LumberJackSeries()
         series._data_ptr = _DataPtr.from_ptr(ptr)
-        series.data_ptr = &series._data_ptr.data_ptr
         return series
 
     def mean(self):
@@ -257,7 +246,6 @@ cdef class LumberJackSeries(object):
         cdef DataPtr ptr = ops.cumsum(self._data_ptr.data_ptr)
         series = LumberJackSeries()
         series._data_ptr = _DataPtr.from_ptr(ptr)
-        series.data_ptr = &series._data_ptr.data_ptr
         return series
 
     def to_cython_array_view(self):

@@ -68,6 +68,8 @@ DataPtr arange(int32_t start, int32_t stop, DType dtype);
 //
 DataPtr astype(DataPtr ptr, DType dtype);
 
+DataPtr copy_ptr(DataPtr *ptr);
+
 DataPtr cumsum(DataPtr data_ptr);
 
 // Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
