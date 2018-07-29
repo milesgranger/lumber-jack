@@ -17,14 +17,14 @@ logger = logging.getLogger(__name__)
 
 np.import_array()
 
-cdef class _DataPtr:
-    """
-    Holds generic access to various data types from a DataPtr
-    """
-    # Flag to avoid double freeing, when inplace ops are done in rust, the original
-    # data is consumed and freed simultaneously
-    cdef bool is_owner
 
+cdef class LumberJackSeries(object):
+    """
+    LumberJackSeries
+
+    Some implementations of Numpy / Pandas functionality with bindings to Rust.
+    """
+    cdef bool is_owner
     cdef DType dtype
 
     # Possible array pointers for different dtypes
@@ -36,49 +36,33 @@ cdef class _DataPtr:
     cdef readonly int len
     cdef DataPtr  data_ptr
 
-    def __cinit__(self):
-        self.is_owner = True
-
-
     @staticmethod
-    cdef _DataPtr from_ptr(DataPtr ptr):
-        cdef _DataPtr _data_ptr
-        _data_ptr = _DataPtr()
+    cdef LumberJackSeries from_ptr(DataPtr ptr):
+        cdef LumberJackSeries series
+        series = LumberJackSeries()
 
         if ptr.tag == Tag.Tag_Float64:
-            _data_ptr.dtype = DType.Float64
-            _data_ptr.vec_ptr_float64 = ptr.float64.data_ptr[0]
-            _data_ptr.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
-            _data_ptr.len = ptr.float64.len
+            series.dtype = DType.Float64
+            series.vec_ptr_float64 = ptr.float64.data_ptr[0]
+            series.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
+            series.len = ptr.float64.len
 
         elif ptr.tag == Tag.Tag_Int32:
-            _data_ptr.dtype = DType.Int32
-            _data_ptr.vec_ptr_int32 = ptr.int32.data_ptr[0]
-            _data_ptr.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
-            _data_ptr.len = ptr.int32.len
+            series.dtype = DType.Int32
+            series.vec_ptr_int32 = ptr.int32.data_ptr[0]
+            series.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
+            series.len = ptr.int32.len
 
         else:
             raise ValueError('Got unknown Dtype: {}'.format(ptr.tag))
 
-        _data_ptr.data_ptr = ptr
-        _data_ptr.is_owner = True
-        return _data_ptr
-
+        series.data_ptr = ptr
+        series.is_owner = True
+        return series
 
     def __dealloc__(self):
-        if self.is_owner:
-            if &self.data_ptr != NULL:
-                free_data(self.data_ptr)
-
-
-cdef class LumberJackSeries(object):
-    """
-    LumberJackSeries
-
-    Some implementations of Numpy / Pandas functionality with bindings to Rust.
-    """
-    cdef _DataPtr _data_ptr
-
+        if &self.data_ptr != NULL and self.is_owner:
+            free_data(self.data_ptr)
 
     cpdef astype(self, type dtype):
         cdef DType _dtype
@@ -86,9 +70,8 @@ cdef class LumberJackSeries(object):
             _dtype = DType.Float64
         else:
             raise ValueError('DType of "{}" not supported, please file an issue! :)'.format(dtype))
-        ptr =  ops.astype(self._data_ptr.data_ptr, DType.Float64)
-        series = LumberJackSeries()
-        series._data_ptr = _DataPtr.from_ptr(ptr)
+        ptr =  ops.astype(self.data_ptr, DType.Float64)
+        series = LumberJackSeries.from_ptr(ptr)
         return series
 
     cdef np.ndarray _convert_byte_string_to_array(self, bytes string):
@@ -107,9 +90,8 @@ cdef class LumberJackSeries(object):
         cdef np.ndarray func_bytes_array = self._convert_byte_string_to_array(func_pickled)
         cdef np.uint8_t[::1] func_bytes = func_bytes_array
 
-        ptr = ops.series_map(&func_bytes[0], func_bytes_array.shape[0], self._data_ptr.data_ptr, DType.Float64)
-        series = LumberJackSeries()
-        series._data_ptr = _DataPtr.from_ptr(ptr)
+        ptr = ops.series_map(&func_bytes[0], func_bytes_array.shape[0], self.data_ptr, DType.Float64)
+        series = LumberJackSeries.from_ptr(ptr)
         return series
 
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
@@ -119,32 +101,29 @@ cdef class LumberJackSeries(object):
         """
         cdef DataPtr ptr
         if op == 'mul':
-            ptr = ops.multiply_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            ptr = ops.multiply_by_scalar(self.data_ptr, scalar, inplace)
         elif op == 'add':
-            ptr = ops.add_by_scalar(self._data_ptr.data_ptr, scalar, inplace)
+            ptr = ops.add_by_scalar(self.data_ptr, scalar, inplace)
         else:
             raise ValueError('Unknown operation: {}'.format(op))
 
         if inplace:
-            self._data_ptr.is_owner = False
-            self._data_ptr = _DataPtr.from_ptr(ptr)
-            return
-        series = LumberJackSeries()
-        series._data_ptr = _DataPtr.from_ptr(ptr)
-        return series
+            self.is_owner = False
+        _series = LumberJackSeries.from_ptr(ptr)
+        return _series
 
     def __mul__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'mul', False)
 
     def __imul__(self, other):
-        self._scalar_arithmetic_factory(float(other), 'mul', True)
+        self = self._scalar_arithmetic_factory(float(other), 'mul', True)
         return self
 
     def __add__(self, other):
         return self._scalar_arithmetic_factory(float(other), 'add', False)
 
     def __iadd__(self, other):
-        self._scalar_arithmetic_factory(float(other), 'add', True)
+        self = self._scalar_arithmetic_factory(float(other), 'add', True)
         return self
 
     @staticmethod
@@ -161,43 +140,41 @@ cdef class LumberJackSeries(object):
             raise ValueError('dtype "{}" not supported, please submit an issue on github!'.format(dtype))
 
         cdef DataPtr ptr = ops.arange(start, stop, _dtype)
-        cdef LumberJackSeries series = LumberJackSeries()
-        series._data_ptr = _DataPtr.from_ptr(ptr)
+        series = LumberJackSeries.from_ptr(ptr)
         return series
 
     def mean(self):
         cdef double avg
-        avg = ops.mean(self._data_ptr.data_ptr)
+        avg = ops.mean(self.data_ptr)
         return avg
 
     def sum(self):
-        cdef double result = ops.sum(self._data_ptr.data_ptr)
+        cdef double result = ops.sum(self.data_ptr)
         return result
 
     def cumsum(self):
-        cdef DataPtr ptr = ops.cumsum(self._data_ptr.data_ptr)
-        series = LumberJackSeries()
-        series._data_ptr = _DataPtr.from_ptr(ptr)
+        cdef DataPtr ptr = ops.cumsum(self.data_ptr)
+        series = LumberJackSeries.from_ptr(ptr)
         return series
 
     def to_cython_array_view(self):
         """
         Provide a cython array view to the data
         """
-        return self._data_ptr.array_view
+        return self.array_view
 
     def to_numpy(self):
         """
         Convert this to numpy array
         """
-        cdef np.ndarray array = np.asarray(self._data_ptr.array_view)
+        cdef np.ndarray array = np.asarray(self.array_view)
         return array
 
     def __len__(self):
-        return self._data_ptr.len
+        return self.len
 
     def __iter__(self):
-        return (self._data_ptr.array_view[i] for i in range(self._data_ptr.len))
+        return (self.array_view[i] for i in range(self.len))
 
     def __getattr__(self, item):
         def method(*args, **kwargs):
@@ -227,19 +204,19 @@ cdef class LumberJackSeries(object):
         raise NotImplementedError('Unable to delete individual elements right now!')
 
     def __getitem__(self, idx):
-        return self._data_ptr.array_view[idx]
+        return self.array_view[idx]
 
     def __setitem__(self, idx, value):
-        if self._data_ptr.dtype == DType.Float64:
+        if self.dtype == DType.Float64:
             value = np.float64(value)
-        elif self._data_ptr.dtype == DType.Int32:
+        elif self.dtype == DType.Int32:
             value = np.int32(value)
         else:
-            raise ValueError('Series assigned unknown data type: {}'.format(self._data_ptr.dtype))
-        self._data_ptr.array_view[idx] = value
+            raise ValueError('Series assigned unknown data type: {}'.format(self.dtype))
+        self.array_view[idx] = value
 
 
     def __repr__(self):
-        return 'LumberJackSeries(length: {})'.format(self._data_ptr.len)
+        return 'LumberJackSeries(length: {})'.format(self.len)
 
 
