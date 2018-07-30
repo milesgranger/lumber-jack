@@ -32,23 +32,28 @@ project while maintaining some of the most valuable functionality of pandas.
 
 ---
 
-### Install
+### Install checklist
 
-`cargo` & `rustup` should be installed along with nightly version of Rust  
-`gcc >= 7`
+- [Rustup](https://rustup.rs/)
+    - `rustup install nightly`
+    - `rustup default nightly`
+- gcc >= 7.x.x 
+- g++ >= 7.x.x
+
 
 **NOTE** Only Python 3.5 is being tested against on Unix platforms
 
 
-
-From the terminal run:
+#####Installing from command line:
 ```commandline
-# Python 3.5 on Unix only at present
-pip install --upgrade lumber-jack
+# Clone repo:
+git clone https://github.com/milesgranger/lumber-jack.git && cd lumber-jack
 
-# bleeding: (You need Rust on your system & Python >= 3.5)
-rustup override set nightly
-pip install git+https://github.com/milesgranger/lumber-jack.git
+# Run tests
+LD_LIBRARY_PATH=$(pwd)/lumberjack/rust:$LD_LIBRARY_PATH python setup.py test
+
+# Install
+python setup.py build_ext && python setup.py install
 
 # Uninstall
 pip uninstall lumber-jack
