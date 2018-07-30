@@ -17,7 +17,7 @@ cdef extern from "./../rust/liblumberjack.h":
                        np.uint32_t func_len,
                        DataPtr     source_ptr,
                        DType       out_dtype)
-    DataPtr series_map_pickled(np.uint8_t  *func_ptr,
+    double  series_map_pickled(np.uint8_t  *func_ptr,
                                np.uint32_t func_len,
                                np.uint8_t  *source_series_ptr,
                                np.uint32_t source_series_len,

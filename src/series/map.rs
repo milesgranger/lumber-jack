@@ -95,9 +95,9 @@ fn call_python_func_pickled(function: CString, source_series: CString, target_se
     locals.set_item("target", Some(target))?;
 
     py.run(r#"
-for val in series:
-    func(series[i])
-    "#, None, Some(&locals));
+for i, val in enumerate(series):
+    target[i] = func(val)
+    "#, None, Some(&locals))?;
 
     println!("Ran with successful pickling!!");
     //py.run("print(func(2.0))",  None, Some(&locals))?;
@@ -116,7 +116,7 @@ pub extern "C" fn series_map_pickled(func_ptr: *mut u8,
                                      source_series_ptr: *mut u8,
                                      source_series_len: u32,
                                      target_series_ptr: *mut u8,
-                                     target_series_len: u32) -> DataPtr {
+                                     target_series_len: u32) -> f64 {
 
     // Convert the pickled function pointer into CString - ie. b'/x02901/xc920...'
     let func = unsafe { get_pickled_bytes(func_ptr, func_len as usize) };
@@ -124,5 +124,5 @@ pub extern "C" fn series_map_pickled(func_ptr: *mut u8,
     let target_series = unsafe { get_pickled_bytes(target_series_ptr, target_series_len as usize) };
 
     call_python_func_pickled(func, source_series, target_series);
-    arange(0, 10, DType::Float64)
+    1.0
 }

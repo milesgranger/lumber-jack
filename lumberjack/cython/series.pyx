@@ -100,7 +100,7 @@ cdef class LumberJackSeries(object):
         return byte_array
 
 
-    cpdef map(self, func, type out_dtype):
+    cpdef map(self, func, type out_dtype=float):
 
         # Pickle the function and convert to numpy u8 array
         cdef bytes  func_pickled = cloudpickle.dumps(func)
@@ -111,7 +111,7 @@ cdef class LumberJackSeries(object):
         series = LumberJackSeries.from_ptr(ptr)
         return series
 
-    cpdef map_pickled(self, func, type out_dtype):
+    cpdef map_pickled(self, func, type out_dtype=float):
 
         # Pickle the function and convert to numpy u8 array
         cdef bytes  func_pickled = cloudpickle.dumps(func)
@@ -124,16 +124,16 @@ cdef class LumberJackSeries(object):
         cdef np.uint8_t[::1] source_bytes = source_bytes_array
 
         # Setup target series
-        target_series = self.astype(out_dtype)
+        target_series = LumberJackSeries.arange(0, len(self), out_dtype)
+
         cdef bytes target_pickled = cloudpickle.dumps(target_series)
         cdef np.ndarray target_bytes_array = self._convert_byte_string_to_array(target_pickled)
         cdef np.uint8_t[::1] target_bytes = target_bytes_array
 
-        ptr = ops.series_map_pickled(&func_bytes[0], func_bytes_array.shape[0],
+        result = ops.series_map_pickled(&func_bytes[0], func_bytes_array.shape[0],
                                      &source_bytes[0], source_bytes_array.shape[0],
                                      &target_bytes[0], target_bytes_array.shape[0])
-        series = LumberJackSeries.from_ptr(ptr)
-        return series
+        return target_series
 
 
 

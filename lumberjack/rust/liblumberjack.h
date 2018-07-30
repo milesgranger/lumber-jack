@@ -81,12 +81,12 @@ DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
 DataPtr series_map(uint8_t *func_ptr, uint32_t func_len, DataPtr source_ptr, DType out_dtype);
 
-DataPtr series_map_pickled(uint8_t *func_ptr,
-                           uint32_t func_len,
-                           uint8_t *source_series_ptr,
-                           uint32_t source_series_len,
-                           uint8_t *target_series_ptr,
-                           uint32_t target_series_len);
+double series_map_pickled(uint8_t *func_ptr,
+                          uint32_t func_len,
+                          uint8_t *source_series_ptr,
+                          uint32_t source_series_len,
+                          uint8_t *target_series_ptr,
+                          uint32_t target_series_len);
 
 double sum(DataPtr data_ptr);
 
