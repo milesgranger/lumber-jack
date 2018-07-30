@@ -19,17 +19,17 @@ class RustSeriesTestCase(unittest.TestCase):
 
     def test_astype(self):
         """Test converting series from one type to another"""
-        int_series = lj.Series.arange(0, 5)
+        int_series = lj.Series.arange(0, 50)
         float_series = int_series.astype(float)
         self.assertEqual(int_series.to_numpy().dtype, np.int32)
         self.assertEqual(float_series.to_numpy().dtype, np.float64)
 
     def test_series_map(self):
-        lj_series = lj.Series.arange(0, 10000)
+        lj_series = lj.Series.arange(0, 1000000, float)
         variable = 2.0
-        result = lj_series.map(lambda v: variable, out_dtype=float)
-        result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
-        result2 = lj_series.map(lambda v: 30, out_dtype=float)
+        result = lj_series.map(lambda v: v, out_dtype=float)
+        #result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
+        #result2 = lj_series.map(lambda v: 30, out_dtype=float)
         #logger.debug('Result from .map() -> {}'.format(result))
 
     def test_picklable(self):

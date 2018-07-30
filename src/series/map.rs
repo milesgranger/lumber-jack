@@ -22,8 +22,26 @@ fn call_python_func(function: CString, source_data: &Data, out_dtype: DType) -> 
     locals.set_item("os", py.import("os")?)?;
     locals.set_item("cloudpickle", py.import("cloudpickle")?)?;
     locals.set_item("pickled_func", Some(function_py_bytes))?;
-
-    py.run("func = cloudpickle.loads(bytes(pickled_func))",  None, Some(&locals))?;
+    let func = py.eval("cloudpickle.loads(bytes(pickled_func))", None, Some(&locals))?;
+    locals.set_item("func", Some(func))?;
+    match source_data {
+        Data::Float64(ref vec) => {
+            let mut pyval;
+            let val_dict = PyDict::new(py);
+            val_dict.set_item("func", Some(func))?;
+            for val in vec.iter() {
+                pyval = PyFloat::new(py, *val);
+                val_dict.set_item("val", Some(pyval))?;
+                py.eval("func(val)", None, Some(&val_dict))?;
+                //locals.del_item("val")?;
+            }
+        }
+        Data::Int32(ref vec) => {
+            println!("Got Int32 type!");
+        }
+    }
+    println!("Ran with values!");
+    //py.run("print(func(2.0))",  None, Some(&locals))?;
 
     Ok(())
 }
