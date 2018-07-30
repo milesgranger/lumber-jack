@@ -7,6 +7,8 @@ import numpy as np
 import pandas as pd
 
 cimport numpy as np
+from cpython.mem cimport PyMem_Malloc, PyMem_Free, PyMem_Realloc
+from libc.string cimport memcpy
 
 from libcpp cimport bool
 from cython cimport view
@@ -17,6 +19,14 @@ logger = logging.getLogger(__name__)
 
 np.import_array()
 
+cpdef object rebuild(bytes data):
+    series = LumberJackSeries()
+    ptr = <DataPtr*>PyMem_Malloc(1 * sizeof(DataPtr))
+    memcpy(ptr, <char*>data, sizeof(DataPtr))
+    series = LumberJackSeries.from_ptr(ptr[0])
+    series.is_owner = False
+    PyMem_Free(ptr)
+    return series
 
 cdef class LumberJackSeries(object):
     """
@@ -24,7 +34,7 @@ cdef class LumberJackSeries(object):
 
     Some implementations of Numpy / Pandas functionality with bindings to Rust.
     """
-    cdef bool is_owner
+    cdef readonly bool is_owner
     cdef DType dtype
 
     # Possible array pointers for different dtypes
@@ -35,6 +45,13 @@ cdef class LumberJackSeries(object):
     cdef readonly view.array array_view
     cdef readonly int len
     cdef DataPtr  data_ptr
+
+    def _get_state(self):
+        return <bytes>(<char*>&self.data_ptr)[:sizeof(DataPtr)]
+
+    def __reduce__(self):
+        data = self._get_state()
+        return (rebuild, (data, ))
 
     @staticmethod
     cdef LumberJackSeries from_ptr(DataPtr ptr):

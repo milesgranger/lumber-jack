@@ -32,6 +32,26 @@ class RustSeriesTestCase(unittest.TestCase):
         result2 = lj_series.map(lambda v: 30, out_dtype=float)
         #logger.debug('Result from .map() -> {}'.format(result))
 
+    def test_picklable(self):
+        """
+        Test ability to be pickled.
+        """
+        series = lj.Series.arange(0, 10)
+        pkl = pickle.dumps(series)
+        series_copy = pickle.loads(pkl)
+        self.assertEqual(series.sum(), series_copy.sum())
+        self.assertFalse(series_copy.is_owner)
+
+        # Assert deleting the copy doesn't affect the original
+        orig_sum = series.sum()
+        del series_copy
+        self.assertEqual(series.sum(), orig_sum)
+
+        # Do another pickle.. jbc
+        pkl = pickle.dumps(series)
+        series_copy = pickle.loads(pkl)
+        self.assertEqual(series.sum(), series_copy.sum())
+        self.assertFalse(series_copy.is_owner)
 
     def test_mean(self):
         """
