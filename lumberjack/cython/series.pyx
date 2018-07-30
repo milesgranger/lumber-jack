@@ -111,6 +111,32 @@ cdef class LumberJackSeries(object):
         series = LumberJackSeries.from_ptr(ptr)
         return series
 
+    cpdef map_pickled(self, func, type out_dtype):
+
+        # Pickle the function and convert to numpy u8 array
+        cdef bytes  func_pickled = cloudpickle.dumps(func)
+        cdef np.ndarray func_bytes_array = self._convert_byte_string_to_array(func_pickled)
+        cdef np.uint8_t[::1] func_bytes = func_bytes_array
+
+        # Pickle outself
+        cdef bytes source_pickled = cloudpickle.dumps(self)
+        cdef np.ndarray source_bytes_array = self._convert_byte_string_to_array(source_pickled)
+        cdef np.uint8_t[::1] source_bytes = source_bytes_array
+
+        # Setup target series
+        target_series = self.astype(out_dtype)
+        cdef bytes target_pickled = cloudpickle.dumps(target_series)
+        cdef np.ndarray target_bytes_array = self._convert_byte_string_to_array(target_pickled)
+        cdef np.uint8_t[::1] target_bytes = target_bytes_array
+
+        ptr = ops.series_map_pickled(&func_bytes[0], func_bytes_array.shape[0],
+                                     &source_bytes[0], source_bytes_array.shape[0],
+                                     &target_bytes[0], target_bytes_array.shape[0])
+        series = LumberJackSeries.from_ptr(ptr)
+        return series
+
+
+
     cpdef _scalar_arithmetic_factory(self, double scalar, str op, bool inplace):
         """
         Helper function to facilitate dunder methods requiring access to _DataPtr object
