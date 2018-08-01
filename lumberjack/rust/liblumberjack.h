@@ -79,15 +79,6 @@ double mean(DataPtr data_ptr);
 
 DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
-DataPtr series_map(uint8_t *func_ptr, uint32_t func_len, DataPtr source_ptr, DType out_dtype);
-
-double series_map_pickled(uint8_t *func_ptr,
-                          uint32_t func_len,
-                          uint8_t *source_series_ptr,
-                          uint32_t source_series_len,
-                          uint8_t *target_series_ptr,
-                          uint32_t target_series_len);
-
 // Set some value at the ith index
 void set_item(DataPtr ptr, uint32_t idx, double value);
 

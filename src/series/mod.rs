@@ -3,7 +3,6 @@
 use std::mem;
 use std::os::raw::c_char;
 mod operators;
-pub mod map;
 
 use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, AsType};
 pub use series::operators::*;
