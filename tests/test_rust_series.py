@@ -3,6 +3,9 @@
 import unittest
 import logging
 import timeit
+import time
+import pickle
+import cloudpickle
 import numpy as np
 import pandas as pd
 import lumberjack as lj
@@ -14,6 +17,43 @@ logger = logging.getLogger(__name__)
 
 
 class RustSeriesTestCase(unittest.TestCase):
+
+    def test_astype(self):
+        """Test converting series from one type to another"""
+        int_series = lj.Series.arange(0, 50)
+        float_series = int_series.astype(float)
+        self.assertEqual(int_series.to_numpy().dtype, np.int32)
+        self.assertEqual(float_series.to_numpy().dtype, np.float64)
+
+    def test_series_map(self):
+        lj_series = lj.Series.arange(0, 10000, float)
+        variable = 2.0
+        result = lj_series.map(lambda v: v, out_dtype=float)
+        result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
+        result2 = lj_series.map(lambda v: 30, out_dtype=float)
+        #logger.debug('Result from .map() -> {}'.format(result))
+        lj_time, pd_time, _ = run_series_method_tests(stmt="series.map(lambda v: v)", skip_numpy=True, n_iter=20)
+
+    def test_picklable(self):
+        """
+        Test ability to be pickled.
+        """
+        series = lj.Series.arange(0, 10)
+        pkl = pickle.dumps(series)
+        series_copy = pickle.loads(pkl)
+        self.assertEqual(series.sum(), series_copy.sum())
+        self.assertFalse(series_copy.is_owner)
+
+        # Assert deleting the copy doesn't affect the original
+        orig_sum = series.sum()
+        del series_copy
+        self.assertEqual(series.sum(), orig_sum)
+
+        # Do another pickle.. jbc
+        pkl = pickle.dumps(series)
+        series_copy = pickle.loads(pkl)
+        self.assertEqual(series.sum(), series_copy.sum())
+        self.assertFalse(series_copy.is_owner)
 
     def test_mean(self):
         """

@@ -34,6 +34,28 @@ struct DataPtr {
   };
 };
 
+// Container for individual item
+struct DataElement {
+  enum class Tag {
+    Float64,
+    Int32,
+  };
+
+  struct Float64_Body {
+    double _0;
+  };
+
+  struct Int32_Body {
+    int32_t _0;
+  };
+
+  Tag tag;
+  union {
+    Float64_Body float64;
+    Int32_Body int32;
+  };
+};
+
 extern "C" {
 
 /* Binding from Rust to Cython  */
@@ -42,6 +64,11 @@ DataPtr add_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
 // Create Series from arange and pass back as DataPtr
 DataPtr arange(int32_t start, int32_t stop, DType dtype);
+
+//
+DataPtr astype(DataPtr ptr, DType dtype);
+
+DataPtr copy_ptr(DataPtr *ptr);
 
 DataPtr cumsum(DataPtr data_ptr);
 
@@ -52,7 +79,13 @@ double mean(DataPtr data_ptr);
 
 DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
-DataPtr sum(DataPtr data_ptr);
+// Set some value at the ith index
+void set_item(DataPtr ptr, uint32_t idx, double value);
+
+double sum(DataPtr data_ptr);
+
+// Set an individual item on an existing vec
+void verify(DataPtr data_ptr);
 
 } // extern "C"
 

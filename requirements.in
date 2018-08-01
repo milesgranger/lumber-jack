@@ -3,3 +3,4 @@ pip-tools>=2.0.1
 semantic-version>=2.6.0
 Cython==0.28.3
 pandas==0.23.3
+cloudpickle==0.5.3
