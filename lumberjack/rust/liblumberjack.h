@@ -88,6 +88,9 @@ double series_map_pickled(uint8_t *func_ptr,
                           uint8_t *target_series_ptr,
                           uint32_t target_series_len);
 
+// Set some value at the ith index
+void set_item(DataPtr ptr, uint32_t idx, double value);
+
 double sum(DataPtr data_ptr);
 
 // Set an individual item on an existing vec

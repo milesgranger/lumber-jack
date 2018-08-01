@@ -24,7 +24,7 @@ class RustSeriesTestCase(unittest.TestCase):
         float_series = int_series.astype(float)
         self.assertEqual(int_series.to_numpy().dtype, np.int32)
         self.assertEqual(float_series.to_numpy().dtype, np.float64)
-    #'''
+
     def test_series_map(self):
         lj_series = lj.Series.arange(0, 10000, float)
         variable = 2.0
@@ -32,14 +32,7 @@ class RustSeriesTestCase(unittest.TestCase):
         result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
         result2 = lj_series.map(lambda v: 30, out_dtype=float)
         #logger.debug('Result from .map() -> {}'.format(result))
-        #lj_time, pd_time, _ = run_series_method_tests(stmt="series.map(lambda v: v)", skip_numpy=True)
-    #'''
-    def test_series_map_via_pickling(self):
-        series = lj.Series.arange(0, 10000, float)
-        result = series.map_pickled(lambda v: v * 0.0, out_dtype=float)
-        #result1 = series.map_pickled(lambda v: 2.0, out_dtype=float)
-        #result2 = series.map_pickled(lambda v: 30, out_dtype=float)
-        #lj_time, pd_time, _ = run_series_method_tests(stmt="series.map_pickled(lambda v: v)", skip_numpy=True, alternate_pandas_stmt='series.map(lambda v: v)')
+        lj_time, pd_time, _ = run_series_method_tests(stmt="series.map(lambda v: v)", skip_numpy=True, n_iter=20)
 
     def test_picklable(self):
         """

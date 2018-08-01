@@ -5,11 +5,11 @@ import logging
 import cloudpickle
 import numpy as np
 import pandas as pd
+from concurrent.futures import ProcessPoolExecutor
+
 
 cimport numpy as np
-from cpython.mem cimport PyMem_Malloc, PyMem_Free, PyMem_Realloc
-from libc.string cimport memcpy
-
+from cython.parallel import prange, parallel
 from libcpp cimport bool
 from cython cimport view
 from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify, copy_ptr
@@ -20,12 +20,10 @@ logger = logging.getLogger(__name__)
 np.import_array()
 
 cpdef object rebuild(bytes data):
-    series = LumberJackSeries()
-    ptr = <DataPtr*>PyMem_Malloc(1 * sizeof(DataPtr))
-    memcpy(ptr, <char*>data, sizeof(DataPtr))
+    cdef char* _ptr = data
+    cdef DataPtr* ptr = <DataPtr*>_ptr
     series = LumberJackSeries.from_ptr(ptr[0])
     series.is_owner = False
-    PyMem_Free(ptr)
     return series
 
 cdef class LumberJackSeries(object):
@@ -100,40 +98,12 @@ cdef class LumberJackSeries(object):
         return byte_array
 
 
-    cpdef map(self, func, type out_dtype=float):
-
-        # Pickle the function and convert to numpy u8 array
-        cdef bytes  func_pickled = cloudpickle.dumps(func)
-        cdef np.ndarray func_bytes_array = self._convert_byte_string_to_array(func_pickled)
-        cdef np.uint8_t[::1] func_bytes = func_bytes_array
-
-        ptr = ops.series_map(&func_bytes[0], func_bytes_array.shape[0], self.data_ptr, DType.Float64)
-        series = LumberJackSeries.from_ptr(ptr)
-        return series
-
-    cpdef map_pickled(self, func, type out_dtype=float):
-
-        # Pickle the function and convert to numpy u8 array
-        cdef bytes  func_pickled = cloudpickle.dumps(func)
-        cdef np.ndarray func_bytes_array = self._convert_byte_string_to_array(func_pickled)
-        cdef np.uint8_t[::1] func_bytes = func_bytes_array
-
-        # Pickle outself
-        cdef bytes source_pickled = cloudpickle.dumps(self)
-        cdef np.ndarray source_bytes_array = self._convert_byte_string_to_array(source_pickled)
-        cdef np.uint8_t[::1] source_bytes = source_bytes_array
-
-        # Setup target series
-        target_series = LumberJackSeries.arange(0, len(self), out_dtype)
-
-        cdef bytes target_pickled = cloudpickle.dumps(target_series)
-        cdef np.ndarray target_bytes_array = self._convert_byte_string_to_array(target_pickled)
-        cdef np.uint8_t[::1] target_bytes = target_bytes_array
-
-        result = ops.series_map_pickled(&func_bytes[0], func_bytes_array.shape[0],
-                                     &source_bytes[0], source_bytes_array.shape[0],
-                                     &target_bytes[0], target_bytes_array.shape[0])
-        return target_series
+    cpdef LumberJackSeries map(self, object func, out_dtype: type=float):
+        # TODO: Improve this, just a placeholder for now, making it parallel via Rust has proven difficult...taking a break.
+        target = self.astype(out_dtype)
+        for i in range(self.len):
+            target[i] = func(self[i])
+        return target
 
 
 
@@ -250,13 +220,8 @@ cdef class LumberJackSeries(object):
         return self.array_view[idx]
 
     def __setitem__(self, idx, value):
-        if self.dtype == DType.Float64:
-            value = np.float64(value)
-        elif self.dtype == DType.Int32:
-            value = np.int32(value)
-        else:
-            raise ValueError('Series assigned unknown data type: {}'.format(self.dtype))
-        self.array_view[idx] = value
+        #self.array_view[idx] = value
+        ops.set_item(self.data_ptr, np.uint32(idx), float(value))
 
 
     def __repr__(self):

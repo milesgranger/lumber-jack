@@ -1,6 +1,7 @@
 #![allow(dead_code)]
 
 use std::mem;
+use std::os::raw::c_char;
 mod operators;
 pub mod map;
 
@@ -36,6 +37,18 @@ pub extern "C" fn arange(start: i32, stop: i32, dtype: DType) -> DataPtr {
     ptr
 }
 
+/// Set some value at the ith index
+#[no_mangle]
+pub extern "C" fn set_item(ptr: DataPtr, idx: u32, value: f64) {
+
+    let mut data = from_data_ptr(ptr);
+    match data {
+        Data::Float64(ref mut vec) => vec[idx as usize] = value,
+        Data::Int32(ref mut vec) => vec[idx as usize] = value as i32
+    }
+    mem::forget(data);
+}
+
 ///
 #[no_mangle]
 pub extern "C" fn astype(ptr: DataPtr, dtype: DType) -> DataPtr {
@@ -50,7 +63,7 @@ pub extern "C" fn astype(ptr: DataPtr, dtype: DType) -> DataPtr {
 #[no_mangle]
 pub extern "C" fn verify(data_ptr: DataPtr) {
     let data = from_data_ptr(data_ptr.clone());
-    println!("Got element: {:?}", &data);
+    println!("Got element: {:?} - {:p}", &data, &data);
     mem::forget(data);
 }
 
