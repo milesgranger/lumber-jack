@@ -19,6 +19,17 @@ logger = logging.getLogger(__name__)
 
 np.import_array()
 
+cdef apply_func(bytes func, bytes source_series, bytes target_series):
+    import cloudpickle
+    f = cloudpickle.loads(func)
+    series = cloudpickle.loads(source_series)
+    target = cloudpickle.loads(target_series)
+
+    print('Array before: {}'.format(target.to_numpy().astype(int)))
+    for i in range(len(series)):
+        target[i] = f(series[i])
+    print('Array now: {}'.format(target.to_numpy().astype(int)))
+
 cpdef object rebuild(bytes data):
     cdef char* _ptr = data
     cdef DataPtr* ptr = <DataPtr*>_ptr
@@ -99,10 +110,15 @@ cdef class LumberJackSeries(object):
 
 
     cpdef LumberJackSeries map(self, object func, out_dtype: type=float):
-        # TODO: Improve this, just a placeholder for now, making it parallel via Rust has proven difficult...taking a break.
+
         target = self.astype(out_dtype)
-        for i in range(self.len):
-            target[i] = func(self[i])
+
+        cdef bytes target_series = cloudpickle.dumps(target)
+        cdef bytes source_series = cloudpickle.dumps(self)
+        cdef bytes f = cloudpickle.dumps(func)
+
+        apply_func(f, source_series, target_series)
+
         return target
 
 
