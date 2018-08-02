@@ -12,7 +12,7 @@ cimport numpy as np
 from cython.parallel import prange, parallel
 from libcpp cimport bool
 from cython cimport view
-from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify, copy_ptr
+from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify, copy_ptr, from_numpy_ptr
 cimport lumberjack.cython.operators as ops
 
 logger = logging.getLogger(__name__)
@@ -225,9 +225,9 @@ cdef class LumberJackSeries(object):
 
         cdef double[::1] arr_view = array
 
-        #series_ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
-        #series = create_lumberjack_series_from_ptr(series_ptr)
-        #return series
+        cdef DataPtr ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
+        series = LumberJackSeries.from_ptr(ptr)
+        return series
 
     def __delitem__(self, key):
         raise NotImplementedError('Unable to delete individual elements right now!')

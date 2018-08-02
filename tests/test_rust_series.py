@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
+    def test_from_numpy(self):
+        array = np.arange(0, 10, dtype=float)
+        series = lj.Series.from_numpy(array)
+        self.assertEqual(array.sum(), series.sum())
+
     def test_astype(self):
         """Test converting series from one type to another"""
         int_series = lj.Series.arange(0, 50)
