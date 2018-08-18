@@ -18,6 +18,11 @@ logger = logging.getLogger(__name__)
 
 class RustSeriesTestCase(unittest.TestCase):
 
+    def test_from_numpy(self):
+        array = np.arange(0, 10, dtype=float)
+        series = lj.Series.from_numpy(array)
+        self.assertEqual(array.sum(), series.sum())
+
     def test_astype(self):
         """Test converting series from one type to another"""
         int_series = lj.Series.arange(0, 50)
@@ -26,11 +31,14 @@ class RustSeriesTestCase(unittest.TestCase):
         self.assertEqual(float_series.to_numpy().dtype, np.float64)
 
     def test_series_map(self):
-        lj_series = lj.Series.arange(0, 10000, float)
+        lj_series = lj.Series.arange(0, 10, float)
         variable = 2.0
-        result = lj_series.map(lambda v: v, out_dtype=float)
-        result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
-        result2 = lj_series.map(lambda v: 30, out_dtype=float)
+        self.assertNotEqual(lj_series.sum(), 0.0)
+        #result = lj_series.map(lambda v: v * 0.0, out_dtype=float)
+        #self.assertEqual(result.sum(), 0.0)
+        #logger.debug('Result values: {}'.format(result.to_numpy().astype(int)))
+        #result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
+        #result2 = lj_series.map(lambda v: 30, out_dtype=float)
         #logger.debug('Result from .map() -> {}'.format(result))
         lj_time, pd_time, _ = run_series_method_tests(stmt="series.map(lambda v: v)", skip_numpy=True, n_iter=20)
 

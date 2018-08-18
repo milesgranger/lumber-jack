@@ -75,6 +75,8 @@ DataPtr cumsum(DataPtr data_ptr);
 // Reconstruct Series from DataPtr and let it fall out of scope to clear from memory.
 void free_data(DataPtr data_ptr);
 
+DataPtr from_numpy_ptr(double *ptr, uint32_t len);
+
 double mean(DataPtr data_ptr);
 
 DataPtr multiply_by_scalar(DataPtr data_ptr, double scalar, bool inplace);

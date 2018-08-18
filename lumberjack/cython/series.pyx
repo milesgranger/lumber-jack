@@ -12,12 +12,26 @@ cimport numpy as np
 from cython.parallel import prange, parallel
 from libcpp cimport bool
 from cython cimport view
-from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify, copy_ptr
+from lumberjack.cython.includes cimport free_data, DataPtr, DType, Tag, TagDataElement, DataElement, verify, copy_ptr, from_numpy_ptr
 cimport lumberjack.cython.operators as ops
 
 logger = logging.getLogger(__name__)
 
 np.import_array()
+
+ctypedef fused int_or_double:
+    int
+    double
+
+
+# Presently not used, can't determine how to specialize it.
+# here for reference.
+def apply_func(bytes func, int[::1] series, double[::1] target):
+
+    f = cloudpickle.loads(func)
+
+    for i in range(len(series)):
+        target[i] = f(series[i])
 
 cpdef object rebuild(bytes data):
     cdef char* _ptr = data
@@ -36,8 +50,8 @@ cdef class LumberJackSeries(object):
     cdef DType dtype
 
     # Possible array pointers for different dtypes
-    cdef double     vec_ptr_float64
-    cdef np.int32_t vec_ptr_int32
+    cdef double*     vec_ptr_float64
+    cdef np.int32_t* vec_ptr_int32
 
     # Static attrs across all dtypes of a DataPtr object.
     cdef readonly view.array array_view
@@ -58,13 +72,13 @@ cdef class LumberJackSeries(object):
 
         if ptr.tag == Tag.Tag_Float64:
             series.dtype = DType.Float64
-            series.vec_ptr_float64 = ptr.float64.data_ptr[0]
+            series.vec_ptr_float64 = ptr.float64.data_ptr
             series.array_view = <double[:ptr.float64.len]> ptr.float64.data_ptr
             series.len = ptr.float64.len
 
         elif ptr.tag == Tag.Tag_Int32:
             series.dtype = DType.Int32
-            series.vec_ptr_int32 = ptr.int32.data_ptr[0]
+            series.vec_ptr_int32 = ptr.int32.data_ptr
             series.array_view = <np.int32_t[:ptr.int32.len]> ptr.int32.data_ptr
             series.len = ptr.int32.len
 
@@ -99,10 +113,14 @@ cdef class LumberJackSeries(object):
 
 
     cpdef LumberJackSeries map(self, object func, out_dtype: type=float):
-        # TODO: Improve this, just a placeholder for now, making it parallel via Rust has proven difficult...taking a break.
-        target = self.astype(out_dtype)
-        for i in range(self.len):
-            target[i] = func(self[i])
+
+        cdef:
+            LumberJackSeries target = self.astype(out_dtype)
+            int i
+
+        for i, val in enumerate(self):
+            target[i] = func(val)
+
         return target
 
 
@@ -209,9 +227,9 @@ cdef class LumberJackSeries(object):
 
         cdef double[::1] arr_view = array
 
-        #series_ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
-        #series = create_lumberjack_series_from_ptr(series_ptr)
-        #return series
+        cdef DataPtr ptr = from_numpy_ptr(&arr_view[0], array.shape[0])
+        series = LumberJackSeries.from_ptr(ptr)
+        return series
 
     def __delitem__(self, key):
         raise NotImplementedError('Unable to delete individual elements right now!')
@@ -222,7 +240,6 @@ cdef class LumberJackSeries(object):
     def __setitem__(self, idx, value):
         #self.array_view[idx] = value
         ops.set_item(self.data_ptr, np.uint32(idx), float(value))
-
 
     def __repr__(self):
         return 'LumberJackSeries(length: {})'.format(self.len)

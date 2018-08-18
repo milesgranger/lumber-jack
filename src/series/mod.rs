@@ -13,6 +13,13 @@ pub use series::operators::*;
 */
 
 #[no_mangle]
+pub extern "C" fn from_numpy_ptr(ptr: &mut f64, len: u32) -> DataPtr {
+    let vec = unsafe { Vec::from_raw_parts(ptr, len as usize, len as usize) };
+    let data = Data::Float64(vec);
+    into_data_ptr(data)
+}
+
+#[no_mangle]
 pub extern "C" fn copy_ptr(ptr: &mut DataPtr) -> DataPtr {
     ptr.clone()
 }

@@ -64,3 +64,4 @@ cdef extern from "./../rust/liblumberjack.h":
     void free_data(DataPtr ptr);
     void verify(DataPtr ptr);
     DataPtr copy_ptr(DataPtr* ptr);
+    DataPtr from_numpy_ptr(double* ptr, np.uint32_t len)
