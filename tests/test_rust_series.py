@@ -34,12 +34,12 @@ class RustSeriesTestCase(unittest.TestCase):
         lj_series = lj.Series.arange(0, 10, float)
         variable = 2.0
         self.assertNotEqual(lj_series.sum(), 0.0)
-        #result = lj_series.map(lambda v: v * 0.0, out_dtype=float)
-        #self.assertEqual(result.sum(), 0.0)
-        #logger.debug('Result values: {}'.format(result.to_numpy().astype(int)))
-        #result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
-        #result2 = lj_series.map(lambda v: 30, out_dtype=float)
-        #logger.debug('Result from .map() -> {}'.format(result))
+        result = lj_series.map(lambda v: v * 0.0, out_dtype=float)
+        self.assertEqual(result.sum(), 0.0)
+        logger.debug('Result values: {}'.format(result.to_numpy().astype(int)))
+        result1 = lj_series.map(lambda v: 2.0, out_dtype=float)
+        result2 = lj_series.map(lambda v: 30, out_dtype=float)
+        logger.debug('Result from .map() -> {}'.format(result))
         lj_time, pd_time, _ = run_series_method_tests(stmt="series.map(lambda v: v)", skip_numpy=True, n_iter=20)
 
     def test_picklable(self):
@@ -148,14 +148,3 @@ class RustSeriesTestCase(unittest.TestCase):
         )
         with self.assertRaises(AttributeError):
             series.THIS_METHOD_DOES_NOT_EXIST_IN_EITHER_PANDAS_OR_LUMBERJACK()
-    '''
-    def test_from_numpy(self):
-        """
-        Test creating a series from numpy array
-        """
-        from lumberjack.cython.series import LumberJackSeries
-
-        array = np.ones(shape=(10,), dtype=float)
-        series = LumberJackSeries.from_numpy(array)
-        logger.debug('Made series from numpy: {}'.format(series))
-    '''

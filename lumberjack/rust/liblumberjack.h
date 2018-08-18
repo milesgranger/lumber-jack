@@ -58,8 +58,6 @@ struct DataElement {
 
 extern "C" {
 
-/* Binding from Rust to Cython  */
-
 DataPtr add_by_scalar(DataPtr data_ptr, double scalar, bool inplace);
 
 // Create Series from arange and pass back as DataPtr
@@ -90,5 +88,3 @@ double sum(DataPtr data_ptr);
 void verify(DataPtr data_ptr);
 
 } // extern "C"
-
-/* Binding from Rust to Cython  */

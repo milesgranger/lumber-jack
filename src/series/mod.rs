@@ -1,7 +1,6 @@
 #![allow(dead_code)]
 
 use std::mem;
-use std::os::raw::c_char;
 mod operators;
 
 use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, AsType};
