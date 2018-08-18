@@ -3,9 +3,21 @@
 use std::mem;
 mod operators;
 
-use containers::{DataPtr, DType, Data, into_data_ptr, from_data_ptr, AsType};
+use containers::{DataPtr, Length, DType, Data, into_data_ptr, from_data_ptr, AsType};
 pub use series::operators::*;
 
+
+#[derive(Clone, Debug, PartialEq)]
+pub struct Series<'a> {
+    pub name: &'a str,
+    pub data: Data
+}
+
+impl<'a> Series<'a> {
+    pub fn len(&self) -> usize {
+        self.data.len()
+    }
+}
 
 /*
     Functions exposed to C which create lumberjack series or frees one.

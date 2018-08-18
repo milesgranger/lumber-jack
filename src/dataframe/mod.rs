@@ -1,44 +1,62 @@
 use containers::Data;
-use std::ops::{Index, IndexMut};
+use series::Series;
 
-
-struct Series<'a> {
-    name: &'a str,
-    data: Data
-}
 
 pub struct DataFrame<'a> {
     data: Vec<Series<'a>>
 }
 
-impl<'a> Index<&'a str> for DataFrame<'a> {
-    type Output = Data;
-    fn index<'b>(&'b self, index: &'a str) -> &'b Data {
-        for series in self.data.iter() {
-            if series.name == index {
-                return &series.data
-            }
-        }
-        panic!("Not found");
-    }
-}
-
-impl<'a> IndexMut<&'a str> for DataFrame<'a> {
-    fn index_mut<'b>(&'b mut self, index: &'a str) -> &'b mut Data {
-
-        // Data enum type doesn't matter as it's going to be overwritten
-        // on assignment.
-        let new_series = Series{name: index, data: Data::Float64(Vec::new())};
-        self.data.push(new_series);
-        let idx = self.data.len() - 1 as usize;
-        &mut self.data[idx].data
-    }
-}
-
 impl<'a> DataFrame<'a> {
+
+    /// Constructs a new `DataFrame<'a>`
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use lumberjack::dataframe::DataFrame;
+    /// 
+    /// let df = DataFrame::new();
+    /// ```
     pub fn new() -> Self {
         let data = Vec::new();
         DataFrame { data }
+    }
+
+    /// Return length of the dataframe
+    pub fn len(&self) -> usize {
+        if self.data.len() > 0 {
+            self.data[0].len()
+        } else {
+            0
+        }
+    }
+
+    /// Attempt to get a reference to a series in the dataframe by name
+    /// 
+    /// # Example
+    /// 
+    /// ```
+    /// use lumberjack::dataframe::DataFrame;
+    /// use lumberjack::series::Series;
+    /// 
+    /// ```
+    pub fn get_column_by_name(&self, name: &'a str) -> Option<&Series<'a>> {
+        for series in self.data.iter() {
+            if name == series.name {
+                return Some(series)
+            }
+        }
+        None
+    }
+
+    pub fn add_column(&mut self, series: Series<'a>) -> Result<(), &'static str> {
+        // Can only add column if series length matches or this is an empty dataframe
+        if (series.len() != self.len()) & (self.len() > 0){
+            Err("Length of new column does not match length of index!")
+        } else {
+            self.data.push(series);
+            Ok(())
+        }
     }
 }
 

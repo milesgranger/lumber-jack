@@ -108,7 +108,7 @@ impl AsType for Data {
 /// Define which data types can be requested or cast to.
 /// to serve as flags between Cython and Rust for data type conversions / creations
 #[repr(C)]
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DType {
     Float64,
     Int32

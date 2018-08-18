@@ -1,10 +1,13 @@
-sudo: require
+sudo: required
 dist: trusty
 language: rust
 
 rust:
+  # Nightly required only for -Z flag in setup.py
   - nightly
-  #- stable
+
+matrix:
+  fast_finish: true
 
 python:
   - "3.5"
@@ -22,6 +25,7 @@ addons:
     packages:
       - g++-7
       - gcc-7
+      - libssl-dev
 
 install:
   - sudo apt-get update
@@ -46,6 +50,6 @@ install:
   - gcc -v && g++ -v
 
 script:
+  - cargo build
   - cargo test
   - LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(pwd)/lumberjack/rust python setup.py test
-
