@@ -5,8 +5,8 @@ pub mod series_map_tests {
 
     #[test]
     fn multiply_by_1() {
-        let data = Data::Int32(vec![1, 2, 3, 4]);
-        series_map!(&data, "lambda v: v * 2");
+        let _data = Data::Int32(vec![1, 2, 3, 4]);
+        series_map!(&_data, "lambda v: v * 2");
         //assert_eq!(new_data, Data::Int32(vec![2, 4, 6, 8]));
     }
 }

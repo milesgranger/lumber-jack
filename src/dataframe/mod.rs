@@ -2,18 +2,18 @@ use containers::Data;
 use std::ops::{Index, IndexMut};
 
 
-struct Series {
-    name: String,
+struct Series<'a> {
+    name: &'a str,
     data: Data
 }
 
-pub struct DataFrame {
-    data: Vec<Series>
+pub struct DataFrame<'a> {
+    data: Vec<Series<'a>>
 }
 
-impl Index<String> for DataFrame {
+impl<'a> Index<&'a str> for DataFrame<'a> {
     type Output = Data;
-    fn index<'a>(&'a self, index: String) -> &'a Data {
+    fn index<'b>(&'b self, index: &'a str) -> &'b Data {
         for series in self.data.iter() {
             if series.name == index {
                 return &series.data
@@ -23,8 +23,8 @@ impl Index<String> for DataFrame {
     }
 }
 
-impl IndexMut<String> for DataFrame {
-    fn index_mut<'a>(&'a mut self, index: String) -> &'a mut Data {
+impl<'a> IndexMut<&'a str> for DataFrame<'a> {
+    fn index_mut<'b>(&'b mut self, index: &'a str) -> &'b mut Data {
 
         // Data enum type doesn't matter as it's going to be overwritten
         // on assignment.
@@ -35,10 +35,10 @@ impl IndexMut<String> for DataFrame {
     }
 }
 
-impl DataFrame {
+impl<'a> DataFrame<'a> {
     pub fn new() -> Self {
         let data = Vec::new();
-        DataFrame {data}
+        DataFrame { data }
     }
 }
 
